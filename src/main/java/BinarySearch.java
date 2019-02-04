@@ -1,15 +1,19 @@
-import java.io.*;
-import java.util.*;
-import java.util.stream.IntStream;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.StringTokenizer;
 
 public class BinarySearch {
 
     static int binarySearch(int[] a, int x) {
+        int middleIndex, middle;
         for (int left = 0, right = a.length - 1; left <= right;) {
-            int middleIndex = ((right - left) / 2) + left;
-            if (x < a[middleIndex]) {
+            middleIndex = ((right - left) / 2) + left;
+            middle = a[middleIndex];
+            if (x < middle) {
                 right = middleIndex - 1;
-            } else if (x > a[middleIndex]) {
+            } else if (x > middle) {
                 left = middleIndex + 1;
             } else {
                 return middleIndex;
