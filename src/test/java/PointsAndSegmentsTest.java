@@ -4,6 +4,7 @@ import org.junit.Test;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Random;
+import java.util.stream.IntStream;
 
 public class PointsAndSegmentsTest {
 
@@ -63,7 +64,7 @@ public class PointsAndSegmentsTest {
     public void stressTest() {
         long startTime = System.nanoTime();
         double duration = 0;
-        while (true) {
+        while (duration < 60) {
             int[] starts = RANDOM.ints(RANDOM.nextInt(STRESS_ARRAY_MAX_SIZE), 0, STRESS_MAX_NUMBER).toArray();
             int[] ends = RANDOM.ints(starts.length, -STRESS_MAX_NUMBER, STRESS_MAX_NUMBER).toArray();
             int[] points = RANDOM.ints(RANDOM.nextInt(STRESS_ARRAY_MAX_SIZE), 0, STRESS_MAX_NUMBER).toArray();
@@ -76,14 +77,15 @@ public class PointsAndSegmentsTest {
     }
 
     private String generateErrorMessage(int[] starts, int[] ends, int[] points, int[] expected, int[] result) {
-        String message = ERROR_MESSAGE + starts.length + " " + points.length + "\n";
+        StringBuilder messageBuilder = new StringBuilder(ERROR_MESSAGE).append(starts.length).append(" ")
+                .append(points.length).append("\n");
         for (int i = 0; i < starts.length; i++) {
-            message = message + starts[i] + " " + ends[i] + "\n";
+            messageBuilder.append(starts[i]).append(" ").append(ends[i]).append("\n");
         }
-        for (int i = 0; i < points.length; i++) {
-            message = message + points[i] + " ";
-        }
-        return message + "\nExpected: " + Arrays.toString(expected) + " and got: " + Arrays.toString(result);
+
+        IntStream.of(points).forEach(point -> messageBuilder.append(point).append(" "));
+        messageBuilder.append("\nExpected: ").append(Arrays.toString(expected)).append(" and got: ").append(Arrays.toString(result));
+        return messageBuilder.toString();
     }
 
 }
