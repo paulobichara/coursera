@@ -5,7 +5,7 @@ public class PointsAndSegments {
     /**
      * Class used to get the payoffs for the provided input data (quick sort)
      */
-    private static class QuickSort {
+    static class QuickSort {
 
         private static class Partitions {
             int start;
@@ -152,7 +152,7 @@ public class PointsAndSegments {
             int qtyEndsAfter = search.qtyPointsAfterOrEqual;
 
             int payoff = qtyStartsBefore + qtyEndsAfter - starts.length;
-            payoffs[pointIndex] = payoff < 0 ? 0 : payoff;
+            payoffs[pointIndex] = payoff <= 0 ? 0 : payoff;
         }
 
         return payoffs;
