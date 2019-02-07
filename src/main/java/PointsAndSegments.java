@@ -19,15 +19,14 @@ public class PointsAndSegments {
         }
 
         private static void sort(int[] array, int left, int right) {
-            if (left + 1 >= right) {
-                return;
+            while (left + 1 < right) {
+                switchValues(array, left, choosePivotRange(array, left, right));
+
+                Partitions partitions = partitionInThree(array, left, right);
+
+                sort(array, left, partitions.start);
+                left = partitions.end + 1;
             }
-
-            switchValues(array, left, choosePivotRange(array, left, right));
-
-            Partitions partitions = partitionInThree(array, left, right);
-            sort(array, left, partitions.start);
-            sort(array, partitions.end + 1, right);
         }
 
         private static int choosePivotRange(int[] array, int left, int right) {

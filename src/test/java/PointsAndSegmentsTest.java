@@ -84,6 +84,8 @@ public class PointsAndSegmentsTest {
     @Test
     public void testSamples() {
         testArrays(new int[] { 0, 7 }, new int[] { 5, 10 }, new int[] { 1, 6, 11 });
+        testArrays(new int[] { 0, 7 }, new int[] { 5, 10 }, new int[] { 1, 6, 6, 11 });
+        testArrays(new int[] { 0, 3 }, new int[] { 5, 5 }, new int[] { 1, 5, 6, 11 });
         testArrays(new int[] { -10 }, new int[] { 10 }, new int[] { -100, 100, 0 });
         testArrays(new int[] { 0, -3, 7 }, new int[] { 5, 2, 10 }, new int[] { 1, 6 });
         testArrays(new int[] { 2, 3, 5, 7 }, new int[] { 3, 5, 5, 7 }, new int[] { 4, 3, 2, 7 });
