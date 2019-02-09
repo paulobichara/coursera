@@ -230,9 +230,17 @@ public class Closest {
                 if (currentDistance == config.maxDistance) {
                     break;
                 } if (currentDistance > config.maxDistance) {
-                    config.rightIndex = middleIndex;
+                    if (ReferenceBound.RIGHT.equals(config.reference)) {
+                        config.leftIndex = middleIndex;
+                    } else {
+                        config.rightIndex = middleIndex;
+                    }
                 } else {
-                    config.leftIndex = middleIndex;
+                    if (ReferenceBound.RIGHT.equals(config.reference)) {
+                        config.rightIndex = middleIndex;
+                    } else {
+                        config.leftIndex = middleIndex;
+                    }
                 }
             }
 
@@ -318,8 +326,9 @@ public class Closest {
             MergeSort sorterByY = new MergeSort(Coordinate.Y);
             sorterByY.sort(points, sortedByY, leftBound, rightBound + 1);
 
+
             for (int i = leftBound; i <= rightBound; i++) {
-                for (int j = leftBound; j <= rightBound && Math.abs(i - j) <= 7; j++) {
+                for (int j = i - 7 < leftBound ? leftBound : i - 7; j <= rightBound && Math.abs(i - j) <= 7; j++) {
                     if (i != j) {
                         minDistance = Math.min(minDistance, sortedByY[i].getDistanceTo(sortedByY[j]));
                     }
@@ -353,7 +362,7 @@ public class Closest {
                 }
             }
         }
-//        System.out.println("Closest points are: (" + first.x + ", " + first.y + ") and (" + second.x + ", " + second.y + ")");
+        System.out.println("Closest points are: (" + first.x + ", " + first.y + ") and (" + second.x + ", " + second.y + ")");
         return minDistance;
     }
 
@@ -364,13 +373,9 @@ public class Closest {
         int pointsQty = nextInt();
 
         Point[] points = new Point[pointsQty];
-        int[] x = new int[pointsQty];
-        int[] y = new int[pointsQty];
 
         for (int i = 0; i < pointsQty; i++) {
-            x[i] = nextInt();
-            y[i] = nextInt();
-            points[i] = new Point(x[i], y[i]);
+            points[i] = new Point(nextInt(), nextInt());
 
         }
         System.out.println(minimalDistance(points));
