@@ -198,15 +198,6 @@ public class Closest {
 
         static int findBound(Configuration config, Point[] array) {
             Point basePoint = array[config.basePointIndex];
-
-            if (config.leftBound == config.rightBound) {
-                if (Math.abs(basePoint.x - array[config.leftBound].x) < config.maxDistance) {
-                    return config.leftBound;
-                } else {
-                    return config.basePointIndex;
-                }
-            }
-
             int middleIndex = -1;
             while (config.leftIndex >= config.leftBound && config.rightIndex <= config.rightBound
                     && config.leftIndex + 1 < config.rightIndex) {
@@ -308,49 +299,41 @@ public class Closest {
             int middleIndex = ((rightIndex - leftIndex) / 2) + leftIndex;
             double minDistanceLeft = minimalDistance(points, leftIndex, middleIndex);
             double minDistanceRight = minimalDistance(points, middleIndex + 1, rightIndex);
-
             double minDistance = Math.min(minDistanceLeft, minDistanceRight);
-            BinarySearch.Configuration config = new BinarySearch.Configuration(BinarySearch.ReferenceBound.RIGHT, leftIndex, middleIndex, (long) minDistance);
-            int leftBound = BinarySearch.findBound(config, points);
-            config = new BinarySearch.Configuration(BinarySearch.ReferenceBound.LEFT, middleIndex + 1, rightIndex, (long) minDistance);
-            int rightBound = BinarySearch.findBound(config, points);
 
-            Point[] sortedByY = Arrays.copyOfRange(points, leftBound, rightBound + 1);
-            QuickSort sorterByY = new QuickSort(Coordinate.Y);
-            sorterByY.sort(sortedByY);
+            return findRealMinimumDistance(points, leftIndex, middleIndex, rightIndex, minDistance);
+        }
+    }
 
-            for (int i = 0; i < sortedByY.length; i++) {
-                for (int j = i - 7 < 0 ? 0 : i - 7; j < sortedByY.length && Math.abs(i - j) <= 7; j++) {
-                    if (i != j) {
-                        minDistance = Math.min(minDistance, sortedByY[i].getDistanceTo(sortedByY[j]));
-                    }
+    private static double findRealMinimumDistance(Point[] points, int leftIndex, int middleIndex, int rightIndex,
+                                                  double minDistanceByX) {
+        double minDistance = minDistanceByX;
+
+        int leftBound = BinarySearch.findBound(new BinarySearch.Configuration(BinarySearch.ReferenceBound.RIGHT,
+                leftIndex, middleIndex, (long) minDistance), points);
+
+        int rightBound = BinarySearch.findBound(new BinarySearch.Configuration(BinarySearch.ReferenceBound.LEFT,
+                middleIndex + 1, rightIndex, (long) minDistance), points);
+
+        Point[] sortedByY = Arrays.copyOfRange(points, leftBound, rightBound + 1);
+        QuickSort sorterByY = new QuickSort(Coordinate.Y);
+        sorterByY.sort(sortedByY);
+
+        for (int i = 0; i < sortedByY.length; i++) {
+            for (int j = i - 7 < 0 ? 0 : i - 7; j < sortedByY.length && Math.abs(i - j) <= 7; j++) {
+                if (i != j) {
+                    minDistance = Math.min(minDistance, sortedByY[i].getDistanceTo(sortedByY[j]));
                 }
             }
-
-//            Point[] sortedByY = new Point[points.length];
-//            MergeSort sorterByY = new MergeSort(Coordinate.Y);
-//            sorterByY.sort(points, sortedByY, leftBound, rightBound + 1);
-//
-//            for (int i = leftBound; i <= rightBound; i++) {
-//                for (int j = i - 7 < leftBound ? leftBound : i - 7; j <= rightBound && Math.abs(i - j) <= 7; j++) {
-//                    if (i != j) {
-//                        minDistance = Math.min(minDistance, sortedByY[i].getDistanceTo(sortedByY[j]));
-//                    }
-//                }
-//            }
-
-            return minDistance;
         }
+
+        return minDistance;
     }
 
     static double minimalDistance(Point[] points) {
         if (points.length < 2) {
             return 0;
         }
-
-//        QuickSort sorterByX = new QuickSort(Coordinate.X);
-//        sorterByX.sort(points);
-//        return DistanceCalculator.minimalDistance(points);
 
         Point[] sortedByX = new Point[points.length];
         MergeSort sorterByX = new MergeSort(Coordinate.X);
