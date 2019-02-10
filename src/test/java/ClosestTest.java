@@ -40,6 +40,7 @@ public class ClosestTest {
         assertMinDistance(createPointArray(new long[]{ 0, 3, 2, 2, 0, 6, 8 }, new long[]{ 6, -4, 2, -10, -2, 2, -9 }), 3.605551);
         assertMinDistance(createPointArray(new long[]{ 6, 4, -6, 8, -1, -2, -9, 4 }, new long[]{ -5, 8, -8, 6, -10, 0, -3, -4 }), 2.236067);
         assertMinDistance(createPointArray(new long[]{ -7, 4, -10, 2, 2, 4, 0, -2 }, new long[]{ -8, 7, -10, 3, -4, -4, -10, 0 }), 2.0);
+        assertMinDistance(createPointArray(new long[]{ 8, -10, -8, -7, -1, -6, -8, -3 }, new long[]{ 8, -4, 4, -7, 8, 4, -5, 2 }), 2.0);
     }
 
     private void assertMinDistance(Closest.Point[] points, double expected) {

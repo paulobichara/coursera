@@ -247,7 +247,7 @@ public class Closest {
                 if (Math.abs(basePoint.x - array[config.leftIndex].x) <= config.maxDistance) {
                     return config.leftIndex;
                 } else {
-                    return config.basePointIndex;
+                    return config.leftIndex + 1;
                 }
             }
 
