@@ -244,7 +244,7 @@ public class Closest {
             }
 
             if (config.leftIndex == config.rightIndex) {
-                if (Math.abs(basePoint.x - array[config.leftIndex].x) < config.maxDistance) {
+                if (Math.abs(basePoint.x - array[config.leftIndex].x) <= config.maxDistance) {
                     return config.leftIndex;
                 } else {
                     return config.basePointIndex;
@@ -319,7 +319,7 @@ public class Closest {
             double minDistanceRight = minimalDistance(points, middleIndex + 1, rightIndex);
 
             double minDistance = Math.min(minDistanceLeft, minDistanceRight);
-            BinarySearch.Configuration config = new BinarySearch.Configuration(BinarySearch.ReferenceBound.RIGHT, 0, middleIndex, (long) minDistance);
+            BinarySearch.Configuration config = new BinarySearch.Configuration(BinarySearch.ReferenceBound.RIGHT, leftIndex, middleIndex, (long) minDistance);
             int leftBound = BinarySearch.findBound(config, points);
             config = new BinarySearch.Configuration(BinarySearch.ReferenceBound.LEFT, middleIndex + 1, rightIndex, (long) minDistance);
             int rightBound = BinarySearch.findBound(config, points);

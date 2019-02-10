@@ -24,24 +24,25 @@ public class ClosestTest {
         Assert.assertEquals(1, Closest.minimalDistance(createPointArray(new long[]{ 3, 8, 7, 8, 6, 3 }, new long[]{ 9, 1, -9, 2, 8, -10 })), 0);
         Assert.assertEquals(3, Closest.minimalDistance(createPointArray(new long[]{ -9, 0, -5, 8, -1, 5 }, new long[]{ 9, -6, -6, -7, 6, -7 })), 0);
 
-        assertApproximateValue(createPointArray(new long[]{ 4, -2, -3, -1, 2, -4, 1, -1, 3, -4, -2 }, new long[]{ 4, -2, -4, 3, 3, 0, 1, -1, -1, 2, 4 }), 1.414213);
-        assertApproximateValue(createPointArray(new long[]{ 0, 5, 3, 7 }, new long[]{ 0, 6, 4, 2 }), 2.828427);
-        assertApproximateValue(createPointArray(new long[]{ -8, 1 }, new long[]{ 8, 9 }), 9.055385);
-        assertApproximateValue(createPointArray(new long[]{ -5, -3, 9, -9 }, new long[]{ 3, -9, -1, -5 }), 7.211102);
-        assertApproximateValue(createPointArray(new long[]{ 5, 6, -1, -8, 7 }, new long[]{ 1, 6, -1, -1, -3 }), 4.472135);
-        assertApproximateValue(createPointArray(new long[]{ -2, -3, -5, 4, 1, 1 }, new long[]{ 8, -3, -6, -1, 6, -2 }), 3.162277);
-        assertApproximateValue(createPointArray(new long[]{ -9, -1, -7, -6, 5, -6 }, new long[]{ -7, 3, 2, -9, -4, 7 }), 3.605551);
-        assertApproximateValue(createPointArray(new long[]{ 1, 7, -10, 6, -5, 6 }, new long[]{ 4, -5, -2, -6, 7, 5 }), 1.414213);
-        assertApproximateValue(createPointArray(new long[]{ -4, -6, 1, 6, -10, 3 }, new long[]{ -10, 5, -4, -6, -10, 7 }), 5.385164);
-        assertApproximateValue(createPointArray(new long[]{ -2, 6, -3, 6, -9, 4 }, new long[]{ -1, -2, 9, 9, 5, 6 }), 3.605551);
-        assertApproximateValue(createPointArray(new long[]{ 7, -6, 2, -3, -10, -6, 0 }, new long[]{ 5, 8, -2, 4, 6, -10, 8 }), 4.472135);
-        assertApproximateValue(createPointArray(new long[]{ -4, -3, 7, 1, 5 }, new long[]{ 4, 9, -4, 4, -7 }), 3.605551);
-        assertApproximateValue(createPointArray(new long[]{ 4, -9, -8, 7, -1, -3, -1 }, new long[]{ -5, 9, -9, -4, -7, 8, 9 }), 2.236067);
-        assertApproximateValue(createPointArray(new long[]{ 0, 3, 2, 2, 0, 6, 8 }, new long[]{ 6, -4, 2, -10, -2, 2, -9 }), 3.605551);
-        assertApproximateValue(createPointArray(new long[]{ 6, 4, -6, 8, -1, -2, -9, 4 }, new long[]{ -5, 8, -8, 6, -10, 0, -3, -4 }), 2.236067);
+        assertMinDistance(createPointArray(new long[]{ 4, -2, -3, -1, 2, -4, 1, -1, 3, -4, -2 }, new long[]{ 4, -2, -4, 3, 3, 0, 1, -1, -1, 2, 4 }), 1.414213);
+        assertMinDistance(createPointArray(new long[]{ 0, 5, 3, 7 }, new long[]{ 0, 6, 4, 2 }), 2.828427);
+        assertMinDistance(createPointArray(new long[]{ -8, 1 }, new long[]{ 8, 9 }), 9.055385);
+        assertMinDistance(createPointArray(new long[]{ -5, -3, 9, -9 }, new long[]{ 3, -9, -1, -5 }), 7.211102);
+        assertMinDistance(createPointArray(new long[]{ 5, 6, -1, -8, 7 }, new long[]{ 1, 6, -1, -1, -3 }), 4.472135);
+        assertMinDistance(createPointArray(new long[]{ -2, -3, -5, 4, 1, 1 }, new long[]{ 8, -3, -6, -1, 6, -2 }), 3.162277);
+        assertMinDistance(createPointArray(new long[]{ -9, -1, -7, -6, 5, -6 }, new long[]{ -7, 3, 2, -9, -4, 7 }), 3.605551);
+        assertMinDistance(createPointArray(new long[]{ 1, 7, -10, 6, -5, 6 }, new long[]{ 4, -5, -2, -6, 7, 5 }), 1.414213);
+        assertMinDistance(createPointArray(new long[]{ -4, -6, 1, 6, -10, 3 }, new long[]{ -10, 5, -4, -6, -10, 7 }), 5.385164);
+        assertMinDistance(createPointArray(new long[]{ -2, 6, -3, 6, -9, 4 }, new long[]{ -1, -2, 9, 9, 5, 6 }), 3.605551);
+        assertMinDistance(createPointArray(new long[]{ 7, -6, 2, -3, -10, -6, 0 }, new long[]{ 5, 8, -2, 4, 6, -10, 8 }), 4.472135);
+        assertMinDistance(createPointArray(new long[]{ -4, -3, 7, 1, 5 }, new long[]{ 4, 9, -4, 4, -7 }), 3.605551);
+        assertMinDistance(createPointArray(new long[]{ 4, -9, -8, 7, -1, -3, -1 }, new long[]{ -5, 9, -9, -4, -7, 8, 9 }), 2.236067);
+        assertMinDistance(createPointArray(new long[]{ 0, 3, 2, 2, 0, 6, 8 }, new long[]{ 6, -4, 2, -10, -2, 2, -9 }), 3.605551);
+        assertMinDistance(createPointArray(new long[]{ 6, 4, -6, 8, -1, -2, -9, 4 }, new long[]{ -5, 8, -8, 6, -10, 0, -3, -4 }), 2.236067);
+        assertMinDistance(createPointArray(new long[]{ -7, 4, -10, 2, 2, 4, 0, -2 }, new long[]{ -8, 7, -10, 3, -4, -4, -10, 0 }), 2.0);
     }
 
-    private void assertApproximateValue(Closest.Point[] points, double expected) {
+    private void assertMinDistance(Closest.Point[] points, double expected) {
         double result = Closest.minimalDistance(points);
         Assert.assertEquals(expected, result, result - expected);
     }
