@@ -48,7 +48,7 @@ public class Closest {
 
         private void sort(Point[] array, int left, int right) {
             while (left + 1 < right) {
-                switchValues(array, left, choosePivotRange(array, left, right));
+                switchValues(array, left, findBestPivotIndex(array, left, right));
 
                 Partitions partitions = partitionInThree(array, left, right);
 
@@ -57,40 +57,27 @@ public class Closest {
             }
         }
 
-        private int choosePivotRange(Point[] array, int left, int right) {
+        private int findBestPivotIndex(Point[] array, int left, int right) {
             int middleIndex = (right - 1 - left) / 2 + left;
             Point[] candidates = new Point[] { array[left], array[middleIndex], array[right - 1] };
-
             int bestIndex = left;
 
-            Point best = findBestPivotCandidate(candidates);
-            if (best.compareTo(candidates[1], coordinate) == 0) {
-                bestIndex = middleIndex;
-            } else if (best.compareTo(candidates[2], coordinate) == 0) {
-                bestIndex = right - 1;
-            }
-
-            return bestIndex;
-        }
-
-        private Point findBestPivotCandidate(Point[] candidates) {
-            Point best = candidates[0];
             if (candidates[0].compareTo(candidates[1], coordinate) > 0) {
                 if (candidates[0].compareTo(candidates[2], coordinate) > 0) {
                     if (candidates[1].compareTo(candidates[2], coordinate) < 0) {
-                        best = candidates[2];
+                        bestIndex = right - 1;
                     } else {
-                        best = candidates[1];
+                        bestIndex = middleIndex;
                     }
                 }
             } else if (candidates[1].compareTo(candidates[2], coordinate) > 0) {
                 if (candidates[0].compareTo(candidates[2], coordinate) < 0) {
-                    best = candidates[2];
+                    bestIndex = right - 1;
                 }
             } else {
-                best = candidates[1];
+                bestIndex = middleIndex;
             }
-            return best;
+            return bestIndex;
         }
 
         private Partitions partitionInThree(Point[] array, int left, int right) {
@@ -340,6 +327,18 @@ public class Closest {
                 }
             }
 
+//            Point[] sortedByY = new Point[points.length];
+//            MergeSort sorterByY = new MergeSort(Coordinate.Y);
+//            sorterByY.sort(points, sortedByY, leftBound, rightBound + 1);
+//
+//            for (int i = leftBound; i <= rightBound; i++) {
+//                for (int j = i - 7 < leftBound ? leftBound : i - 7; j <= rightBound && Math.abs(i - j) <= 7; j++) {
+//                    if (i != j) {
+//                        minDistance = Math.min(minDistance, sortedByY[i].getDistanceTo(sortedByY[j]));
+//                    }
+//                }
+//            }
+
             return minDistance;
         }
     }
@@ -349,9 +348,15 @@ public class Closest {
             return 0;
         }
 
-        QuickSort sorterByX = new QuickSort(Coordinate.X);
-        sorterByX.sort(points);
-        return DistanceCalculator.minimalDistance(points);
+//        QuickSort sorterByX = new QuickSort(Coordinate.X);
+//        sorterByX.sort(points);
+//        return DistanceCalculator.minimalDistance(points);
+
+        Point[] sortedByX = new Point[points.length];
+        MergeSort sorterByX = new MergeSort(Coordinate.X);
+        sorterByX.sort(points, sortedByX, 0, points.length);
+
+        return DistanceCalculator.minimalDistance(sortedByX);
     }
 
     static double naiveMinimalDistance(Point[] points) {

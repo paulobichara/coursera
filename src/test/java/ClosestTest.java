@@ -2,6 +2,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.Random;
 
 public class ClosestTest {
@@ -41,6 +42,25 @@ public class ClosestTest {
         assertMinDistance(createPointArray(new long[]{ 6, 4, -6, 8, -1, -2, -9, 4 }, new long[]{ -5, 8, -8, 6, -10, 0, -3, -4 }), 2.236067);
         assertMinDistance(createPointArray(new long[]{ -7, 4, -10, 2, 2, 4, 0, -2 }, new long[]{ -8, 7, -10, 3, -4, -4, -10, 0 }), 2.0);
         assertMinDistance(createPointArray(new long[]{ 8, -10, -8, -7, -1, -6, -8, -3 }, new long[]{ 8, -4, 4, -7, 8, 4, -5, 2 }), 2.0);
+    }
+
+    @Test
+    public void testBigInput() {
+        long[] x = new long[ARRAY_MAX_SIZE];
+        Arrays.fill(x, 0);
+
+        long[] y = RANDOM.longs(ARRAY_MAX_SIZE, -MAX_NUMBER, MAX_NUMBER).toArray();
+
+        StringBuilder messageBuilder = new StringBuilder("Testing new input:\n");
+        messageBuilder.append(inputToString(x, y));
+        try {
+            long startTime = System.nanoTime();
+            Closest.minimalDistance(createPointArray(x, y));
+            double duration = (System.nanoTime() - startTime) / 1_000_000_000.0;
+            Assert.assertTrue("Exceeded time: " + duration, duration < 3);
+        } catch (Exception e) {
+            Assert.fail(messageBuilder.toString());
+        }
     }
 
     private void assertMinDistance(Closest.Point[] points, double expected) {
