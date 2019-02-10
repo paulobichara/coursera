@@ -175,7 +175,6 @@ public class Closest {
 
     }
 
-
     static class BinarySearch {
 
         private static class Configuration {
@@ -196,13 +195,13 @@ public class Closest {
                 this.rightBound = rightBound;
                 this.maxDistance = maxDistance;
 
+                this.leftIndex = leftBound;
+
                 if (ReferenceBound.RIGHT.equals(reference)) {
-                    this.leftIndex = leftBound;
                     this.basePointIndex = rightBound;
                     this.rightIndex = rightBound - 1 >= 0 ? rightBound - 1 : 0;
                 } else {
-                    this.leftIndex = leftBound + 1;
-                    this.basePointIndex = leftBound;
+                    this.basePointIndex = leftBound - 1;
                     this.rightIndex = rightBound;
                 }
             }
@@ -231,21 +230,25 @@ public class Closest {
                     break;
                 } if (currentDistance > config.maxDistance) {
                     if (ReferenceBound.RIGHT.equals(config.reference)) {
-                        config.leftIndex = middleIndex;
+                        config.leftIndex = middleIndex + 1;
                     } else {
-                        config.rightIndex = middleIndex;
+                        config.rightIndex = middleIndex - 1;
                     }
                 } else {
                     if (ReferenceBound.RIGHT.equals(config.reference)) {
-                        config.rightIndex = middleIndex;
+                        config.rightIndex = middleIndex - 1;
                     } else {
-                        config.leftIndex = middleIndex;
+                        config.leftIndex = middleIndex + 1;
                     }
                 }
             }
 
-            if (middleIndex == -1 && config.leftIndex + 1 > config.rightIndex) {
-                return config.leftIndex;
+            if (config.leftIndex == config.rightIndex) {
+                if (Math.abs(basePoint.x - array[config.leftIndex].x) < config.maxDistance) {
+                    return config.leftIndex;
+                } else {
+                    return config.basePointIndex;
+                }
             }
 
             if (config.leftIndex + 1 == config.rightIndex) {
@@ -313,22 +316,20 @@ public class Closest {
 
             int middleIndex = ((rightIndex - leftIndex) / 2) + leftIndex;
             double minDistanceLeft = minimalDistance(points, leftIndex, middleIndex);
-            double minDistanceRight = minimalDistance(points, middleIndex, rightIndex);
+            double minDistanceRight = minimalDistance(points, middleIndex + 1, rightIndex);
 
             double minDistance = Math.min(minDistanceLeft, minDistanceRight);
             BinarySearch.Configuration config = new BinarySearch.Configuration(BinarySearch.ReferenceBound.RIGHT, 0, middleIndex, (long) minDistance);
             int leftBound = BinarySearch.findBound(config, points);
-            config = new BinarySearch.Configuration(BinarySearch.ReferenceBound.LEFT, middleIndex, rightIndex, (long) minDistance);
+            config = new BinarySearch.Configuration(BinarySearch.ReferenceBound.LEFT, middleIndex + 1, rightIndex, (long) minDistance);
             int rightBound = BinarySearch.findBound(config, points);
 
-            Point[] sortedByY = new Point[points.length];
+            Point[] sortedByY = Arrays.copyOfRange(points, leftBound, rightBound + 1);
+            QuickSort sorterByY = new QuickSort(Coordinate.Y);
+            sorterByY.sort(sortedByY);
 
-            MergeSort sorterByY = new MergeSort(Coordinate.Y);
-            sorterByY.sort(points, sortedByY, leftBound, rightBound + 1);
-
-
-            for (int i = leftBound; i <= rightBound; i++) {
-                for (int j = i - 7 < leftBound ? leftBound : i - 7; j <= rightBound && Math.abs(i - j) <= 7; j++) {
+            for (int i = 0; i < sortedByY.length; i++) {
+                for (int j = i - 7 < 0 ? 0 : i - 7; j < sortedByY.length && Math.abs(i - j) <= 7; j++) {
                     if (i != j) {
                         minDistance = Math.min(minDistance, sortedByY[i].getDistanceTo(sortedByY[j]));
                     }
@@ -340,9 +341,8 @@ public class Closest {
     }
 
     static double minimalDistance(Point[] points) {
-        QuickSort sortByX = new QuickSort(Coordinate.X);
-        sortByX.sort(points);
-
+        QuickSort sorterByX = new QuickSort(Coordinate.X);
+        sorterByX.sort(points);
         return DistanceCalculator.minimalDistance(points);
     }
 

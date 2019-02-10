@@ -11,8 +11,8 @@ public class ClosestTest {
     private static final int ARRAY_MAX_SIZE = 50_000;
     private static final int MAX_NUMBER = 100_000_000;
 
-    private static final int STRESS_ARRAY_MAX_SIZE = 100;
-    private static final int STRESS_MAX_NUMBER = 1000;
+    private static final int STRESS_ARRAY_MAX_SIZE = 8;
+    private static final int STRESS_MAX_NUMBER = 10;
 
     private static final Random RANDOM = new SecureRandom();
 
@@ -38,6 +38,7 @@ public class ClosestTest {
         assertApproximateValue(createPointArray(new long[]{ -4, -3, 7, 1, 5 }, new long[]{ 4, 9, -4, 4, -7 }), 3.605551);
         assertApproximateValue(createPointArray(new long[]{ 4, -9, -8, 7, -1, -3, -1 }, new long[]{ -5, 9, -9, -4, -7, 8, 9 }), 2.236067);
         assertApproximateValue(createPointArray(new long[]{ 0, 3, 2, 2, 0, 6, 8 }, new long[]{ 6, -4, 2, -10, -2, 2, -9 }), 3.605551);
+        assertApproximateValue(createPointArray(new long[]{ 6, 4, -6, 8, -1, -2, -9, 4 }, new long[]{ -5, 8, -8, 6, -10, 0, -3, -4 }), 2.236067);
     }
 
     private void assertApproximateValue(Closest.Point[] points, double expected) {
