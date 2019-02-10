@@ -11,8 +11,8 @@ public class ClosestTest {
     private static final int ARRAY_MAX_SIZE = 50_000;
     private static final int MAX_NUMBER = 100_000_000;
 
-    private static final int STRESS_ARRAY_MAX_SIZE = 8;
-    private static final int STRESS_MAX_NUMBER = 10;
+    private static final int STRESS_ARRAY_MAX_SIZE = 50;
+    private static final int STRESS_MAX_NUMBER = 1000;
 
     private static final Random RANDOM = new SecureRandom();
 
@@ -58,8 +58,12 @@ public class ClosestTest {
             long[] y = RANDOM.longs(STRESS_ARRAY_MAX_SIZE, -STRESS_MAX_NUMBER, STRESS_MAX_NUMBER).toArray();
             messageBuilder = new StringBuilder("Testing new input:\n");
             messageBuilder.append(inputToString(x, y));
-            Assert.assertEquals(messageBuilder.toString(), Closest.naiveMinimalDistance(createPointArray(x, y)),
-                    Closest.minimalDistance(createPointArray(x, y)), 0);
+            try {
+                Assert.assertEquals(messageBuilder.toString(), Closest.naiveMinimalDistance(createPointArray(x, y)),
+                        Closest.minimalDistance(createPointArray(x, y)), 0);
+            } catch (Exception e) {
+                Assert.fail(messageBuilder.toString());
+            }
             duration = (System.nanoTime() - startTime) / 1_000_000_000.0;
         }
     }

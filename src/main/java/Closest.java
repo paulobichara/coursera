@@ -247,7 +247,11 @@ public class Closest {
                 if (Math.abs(basePoint.x - array[config.leftIndex].x) <= config.maxDistance) {
                     return config.leftIndex;
                 } else {
-                    return config.leftIndex + 1;
+                    if (ReferenceBound.RIGHT.equals(config.reference)) {
+                        return config.leftIndex < config.leftBound ? config.leftIndex + 1 : config.leftBound;
+                    } else {
+                        return config.rightIndex < config.rightBound ? config.rightIndex - 1 : config.rightBound;
+                    }
                 }
             }
 
@@ -286,14 +290,14 @@ public class Closest {
                 } else if (distanceRight <= config.maxDistance) {
                     bound = config.rightIndex;
                 } else {
-                    bound = config.basePointIndex;
+                    bound = config.rightIndex < config.rightBound ? config.rightIndex + 1 : config.basePointIndex;
                 }
             } else if (distanceRight <= config.maxDistance) {
                 bound = config.rightIndex;
             } else if (distanceLeft <= config.maxDistance) {
                 bound = config.leftIndex;
             } else {
-                bound = config.basePointIndex;
+                bound = config.leftIndex > config.leftBound ? config.leftIndex - 1 : config.basePointIndex;
             }
             return bound;
         }
@@ -341,6 +345,10 @@ public class Closest {
     }
 
     static double minimalDistance(Point[] points) {
+        if (points.length < 2) {
+            return 0;
+        }
+
         QuickSort sorterByX = new QuickSort(Coordinate.X);
         sorterByX.sort(points);
         return DistanceCalculator.minimalDistance(points);
@@ -362,7 +370,7 @@ public class Closest {
                 }
             }
         }
-        System.out.println("Closest points are: (" + first.x + ", " + first.y + ") and (" + second.x + ", " + second.y + ")");
+//        System.out.println("Closest points are: (" + first.x + ", " + first.y + ") and (" + second.x + ", " + second.y + ")");
         return minDistance;
     }
 
