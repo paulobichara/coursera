@@ -130,6 +130,13 @@ public class Closest {
             sort(array, sorted, middle, right);
             merge(sorted, left, middle, right);
         }
+//
+//        void sortNonRecursive(Point[] array, Point[] sorted, int leftBound, int rightBound) {
+//            int arraySize;
+//            for (arraySize = 1; arraySize <= array.length; arraySize = 2 * arraySize) {
+//
+//            }
+//        }
 
         private void merge(Point[] array, int leftBound, int middle, int rightBound) {
             int totalElements = rightBound - leftBound;
@@ -222,19 +229,11 @@ public class Closest {
             }
 
             if (config.leftIndex == config.rightIndex) {
-                if (Math.abs(basePoint.x - array[config.leftIndex].x) <= config.maxDistance) {
-                    return config.leftIndex;
-                } else {
-                    if (ReferenceBound.RIGHT.equals(config.reference)) {
-                        return config.leftIndex < config.leftBound ? config.leftIndex + 1 : config.leftBound;
-                    } else {
-                        return config.rightIndex < config.rightBound ? config.rightIndex - 1 : config.rightBound;
-                    }
-                }
+                return checkLastElement(array, config, basePoint);
             }
 
             if (config.leftIndex + 1 == config.rightIndex) {
-                return findBoundLastTwo(config, array);
+                return checkLastTwoElements(config, array);
             }
 
             return findLastEquallyDistant(config, array, middleIndex);
@@ -257,7 +256,19 @@ public class Closest {
             return bound;
         }
 
-        private static int findBoundLastTwo(Configuration config, Point[] array) {
+        private static int checkLastElement(Point[] array, Configuration config, Point basePoint) {
+            if (Math.abs(basePoint.x - array[config.leftIndex].x) <= config.maxDistance) {
+                return config.leftIndex;
+            } else {
+                if (ReferenceBound.RIGHT.equals(config.reference)) {
+                    return config.leftIndex < config.leftBound ? config.leftIndex + 1 : config.leftBound;
+                } else {
+                    return config.rightIndex < config.rightBound ? config.rightIndex - 1 : config.rightBound;
+                }
+            }
+        }
+
+        private static int checkLastTwoElements(Configuration config, Point[] array) {
             long distanceLeft = Math.abs(array[config.leftIndex].x - array[config.basePointIndex].x);
             long distanceRight = Math.abs(array[config.rightIndex].x - array[config.basePointIndex].x);
 
