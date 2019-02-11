@@ -14,17 +14,15 @@ public class Sorting {
     }
 
     private static void randomizedQuickSort(int[] a, int l, int r) {
-        if (l >= r) {
-            return;
+        while (l < r) {
+            int k = random.nextInt(r - l + 1) + l;
+            switchValues(a, l, k);
+
+            Partitions partitions = partitionInThree(a, l, r + 1);
+
+            randomizedQuickSort(a, l, partitions.start);
+            l = partitions.end + 1;
         }
-        int k = random.nextInt(r - l + 1) + l;
-        int t = a[l];
-        a[l] = a[k];
-        a[k] = t;
-        //use partition3
-        Partitions partitions = partitionInThree(a, l, r + 1);
-        randomizedQuickSort(a, l, partitions.start);
-        randomizedQuickSort(a, partitions.end + 1, r);
     }
 
     private static Partitions partitionInThree(int[] a, int left, int right) {
@@ -39,7 +37,12 @@ public class Sorting {
         int pivotIndex = left;
 
         for (int i = left + 1; i < right; i++) {
-            if ((a[i] < pivot && !invertEquals) || (a[i] <= pivot && invertEquals)) {
+            if (invertEquals) {
+                if (a[i] <= pivot) {
+                    pivotIndex++;
+                    switchValues(a, i, pivotIndex);
+                }
+            } else if (a[i] < pivot) {
                 pivotIndex++;
                 switchValues(a, i, pivotIndex);
             }
