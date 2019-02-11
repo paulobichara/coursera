@@ -13,10 +13,10 @@ public class Closest {
         }
 
         int compareTo(Point other, Coordinate coordinate) {
-            if (Coordinate.Y.equals(coordinate)) {
-                return other.y == y ? Long.signum(x - other.x) : Long.signum(y - other.y);
-            } else {
+            if (Coordinate.X.equals(coordinate)) {
                 return other.x == x ? Long.signum(y - other.y) : Long.signum(x - other.x);
+            } else {
+                return other.y == y ? Long.signum(x - other.x) : Long.signum(y - other.y);
             }
         }
 
@@ -26,90 +26,6 @@ public class Closest {
     }
 
     private enum Coordinate { X, Y }
-
-    static class QuickSort {
-
-        private static class Partitions {
-            int start;
-            int end;
-        }
-
-        private Coordinate coordinate;
-
-        QuickSort(Coordinate coordinate) {
-            this.coordinate = coordinate;
-        }
-
-        void sort(Point[] array) {
-            if (array.length > 1) {
-                sort(array, 0, array.length);
-            }
-        }
-
-        private void sort(Point[] array, int left, int right) {
-            while (left + 1 < right) {
-                switchValues(array, left, findBestPivotIndex(array, left, right));
-
-                Partitions partitions = partitionInThree(array, left, right);
-
-                sort(array, left, partitions.start);
-                left = partitions.end + 1;
-            }
-        }
-
-        private int findBestPivotIndex(Point[] array, int left, int right) {
-            int middleIndex = (right - 1 - left) / 2 + left;
-            Point[] candidates = new Point[] { array[left], array[middleIndex], array[right - 1] };
-            int bestIndex = left;
-
-            if (candidates[0].compareTo(candidates[1], coordinate) > 0) {
-                if (candidates[0].compareTo(candidates[2], coordinate) > 0) {
-                    if (candidates[1].compareTo(candidates[2], coordinate) < 0) {
-                        bestIndex = right - 1;
-                    } else {
-                        bestIndex = middleIndex;
-                    }
-                }
-            } else if (candidates[1].compareTo(candidates[2], coordinate) > 0) {
-                if (candidates[0].compareTo(candidates[2], coordinate) < 0) {
-                    bestIndex = right - 1;
-                }
-            } else {
-                bestIndex = middleIndex;
-            }
-            return bestIndex;
-        }
-
-        private Partitions partitionInThree(Point[] array, int left, int right) {
-            Partitions partitions = new Partitions();
-            partitions.start = partitionInTwo(array, left, right, false);
-            partitions.end = partitionInTwo(array, partitions.start, right, true);
-            return partitions;
-        }
-
-        private int partitionInTwo(Point[] array, int left, int right,
-                                   boolean invertEquals) {
-            Point pivot = array[left];
-            int pivotIndex = left;
-
-            for (int i = left + 1; i < right; i++) {
-                Point current = array[i];
-                if ((current.compareTo(pivot, coordinate) < 0 && !invertEquals)
-                        || (current.compareTo(pivot, coordinate) <= 0 && invertEquals)) {
-                    pivotIndex = pivotIndex + 1;
-                    switchValues(array, i, pivotIndex);
-                }
-            }
-            switchValues(array, left, pivotIndex);
-            return pivotIndex;
-        }
-
-        private void switchValues(Point[] array, int from, int to) {
-            Point oldValue = array[from];
-            array[from] = array[to];
-            array[to] = oldValue;
-        }
-    }
 
     static class MergeSort {
 
@@ -123,16 +39,13 @@ public class Closest {
             int arraySize;
             for (arraySize = 1; arraySize < array.length; arraySize = 2 * arraySize) {
                 for (int left = 0, right; left < array.length - 1; left = right) {
-                    int middle = left + arraySize - 1;
                     right = Math.min(left + 2 * arraySize, array.length);
+                    right = array.length - right > 0 && array.length - right < arraySize + 1 ? array.length : right;
 
-                    if (array.length - right < 2 * arraySize) {
-                        right = array.length;
-                        if (arraySize == 1) {
-                            mergeNonRecursive(array, middle + 1, middle + 1, right);
-                        }
+                    if (right == array.length && right - left > arraySize + 1) {
+                        mergeNonRecursive(array, left + arraySize, (left + arraySize + right) / 2 - 1, right);
                     }
-                    mergeNonRecursive(array, left, middle, right);
+                    mergeNonRecursive(array, left, left + arraySize - 1, right);
                 }
             }
         }
@@ -160,7 +73,6 @@ public class Closest {
                     rightSideCount++;
                 }
             }
-
         }
     }
 
@@ -321,8 +233,8 @@ public class Closest {
                     middleIndex + 1, rightIndex, (long) minDistance), points);
 
             Point[] sortedByY = Arrays.copyOfRange(points, leftBound, rightBound + 1);
-            QuickSort sorterByY = new QuickSort(Coordinate.Y);
-            sorterByY.sort(sortedByY);
+            MergeSort mergeSort = new MergeSort(Coordinate.Y);
+            mergeSort.sortNonRecursive(sortedByY);
 
             for (int i = 0; i < sortedByY.length; i++) {
                 for (int j = i - 7 < 0 ? 0 : i - 7; j < sortedByY.length && Math.abs(i - j) <= 7; j++) {
@@ -363,7 +275,7 @@ public class Closest {
                 }
             }
         }
-//        System.out.println("Closest points are: (" + first.x + ", " + first.y + ") and (" + second.x + ", " + second.y + ")");
+        System.out.println("Closest points are: (" + first.x + ", " + first.y + ") and (" + second.x + ", " + second.y + ")");
         return minDistance;
     }
 
