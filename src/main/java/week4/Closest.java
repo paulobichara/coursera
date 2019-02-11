@@ -1,3 +1,5 @@
+package week4;
+
 import java.io.*;
 import java.util.*;
 
@@ -275,7 +277,7 @@ public class Closest {
                 }
             }
         }
-        System.out.println("Closest points are: (" + first.x + ", " + first.y + ") and (" + second.x + ", " + second.y + ")");
+        System.out.println("week4.Closest points are: (" + first.x + ", " + first.y + ") and (" + second.x + ", " + second.y + ")");
         return minDistance;
     }
 
