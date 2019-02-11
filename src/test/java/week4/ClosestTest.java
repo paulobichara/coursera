@@ -2,15 +2,12 @@ package week4;
 
 import org.junit.Assert;
 import org.junit.Test;
-import week4.Closest;
 
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Random;
 
 public class ClosestTest {
-
-    private static final String ERROR_MESSAGE = "Wrong Answer for: \n";
 
     private static final int ARRAY_MAX_SIZE = 50_000;
     private static final int MAX_NUMBER = 100_000_000;

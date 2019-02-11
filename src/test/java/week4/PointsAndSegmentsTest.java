@@ -2,7 +2,6 @@ package week4;
 
 import org.junit.Assert;
 import org.junit.Test;
-import week4.PointsAndSegments;
 
 import java.security.SecureRandom;
 import java.util.Arrays;
