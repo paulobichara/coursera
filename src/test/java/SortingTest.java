@@ -10,9 +10,6 @@ public class SortingTest {
 
     private static final String ERROR_MESSAGE = "Wrong Answer for: \n";
 
-    private static final int ARRAY_MAX_SIZE = 50_000;
-    private static final int MAX_NUMBER = 100_000_000;
-
     private static final int STRESS_ARRAY_MAX_SIZE = 10;
     private static final int STRESS_MAX_NUMBER = 10;
 
