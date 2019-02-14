@@ -3,7 +3,7 @@ package week2;
 import java.util.*;
 
 public class FibonacciSumLastDigit {
-    protected static long getFibonacciSumNaive(long n) {
+    static long getFibonacciSumNaive(long n) {
         if (n <= 1)
             return n;
 

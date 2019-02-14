@@ -3,7 +3,7 @@ package week2;
 import java.util.*;
 
 public class FibonacciSumLastDigitFast {
-    protected static long getFibonacciSum(long n) {
+    static long getFibonacciSum(long n) {
         List<Integer> sequence = new ArrayList<>();
 
         int periodLength = findPisanoPeriodLength(10, sequence);

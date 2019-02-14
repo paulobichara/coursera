@@ -3,7 +3,7 @@ package week2;
 import java.util.*;
 
 public class LCM {
-  protected static long lcm_naive(int a, int b) {
+  static long lcm_naive(int a, int b) {
     for (long l = 1; l <= (long) a * b; ++l)
       if (l % a == 0 && l % b == 0)
         return l;
@@ -11,7 +11,7 @@ public class LCM {
     return (long) a * b;
   }
 
-  public static void main(String args[]) {
+  public static void main(String[] args) {
     Scanner scanner = new Scanner(System.in);
     int a = scanner.nextInt();
     int b = scanner.nextInt();

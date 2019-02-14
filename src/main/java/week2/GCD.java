@@ -3,7 +3,7 @@ package week2;
 import java.util.*;
 
 public class GCD {
-  protected static long gcd_naive(long a, long b) {
+  static long gcd_naive(long a, long b) {
     long current_gcd = 1;
     for(long d = 2; d <= a && d <= b; ++d) {
       if (a % d == 0 && b % d == 0) {
@@ -16,7 +16,7 @@ public class GCD {
     return current_gcd;
   }
 
-  public static void main(String args[]) {
+  public static void main(String[] args) {
     Scanner scanner = new Scanner(System.in);
     int a = scanner.nextInt();
     int b = scanner.nextInt();

@@ -283,7 +283,7 @@ public class Closest {
 
     public static void main(String[] args) {
         reader = new BufferedReader(new InputStreamReader(System.in));
-        writer = new PrintWriter(System.out);
+        PrintWriter writer = new PrintWriter(System.out);
 
         int pointsQty = nextInt();
 
@@ -298,7 +298,6 @@ public class Closest {
     }
 
     private static BufferedReader reader;
-    private static PrintWriter writer;
     private static StringTokenizer tok = new StringTokenizer("");
 
 

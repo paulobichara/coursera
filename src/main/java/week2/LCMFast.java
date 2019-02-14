@@ -4,7 +4,7 @@ import java.util.*;
 
 public class LCMFast {
 
-  protected static long lcm(int a, int b) {
+  static long lcm(int a, int b) {
     int factoredA = a;
     int factoredB = b;
 
@@ -29,7 +29,7 @@ public class LCMFast {
     return lcm;
   }
 
-  public static void main(String args[]) {
+  public static void main(String[] args) {
     Scanner scanner = new Scanner(System.in);
     int a = scanner.nextInt();
     int b = scanner.nextInt();

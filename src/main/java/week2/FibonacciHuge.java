@@ -3,7 +3,7 @@ package week2;
 import java.util.*;
 
 public class FibonacciHuge {
-    protected static long getFibonacciHugeNaive(long n, long m) {
+    static long getFibonacciHugeNaive(long n, long m) {
         if (n <= 1)
             return n;
 

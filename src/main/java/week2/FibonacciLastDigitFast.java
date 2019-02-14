@@ -3,7 +3,7 @@ package week2;
 import java.util.*;
 
 public class FibonacciLastDigitFast {
-    protected static int getFibonacciLastDigit(long n) {
+    static int getFibonacciLastDigit(long n) {
         if (n <= 1)
             return (int) n;
 

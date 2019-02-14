@@ -8,9 +8,9 @@ import java.util.StringTokenizer;
 
 public class BinarySearch {
 
-    static int binarySearch(int[] a, int x) {
+    private static int binarySearch(int[] a, int x) {
         int middleIndex, middle;
-        for (int left = 0, right = a.length - 1; left <= right;) {
+        for (int left = 0, right = a.length - 1; left <= right; ) {
             middleIndex = ((right - left) / 2) + left;
             middle = a[middleIndex];
             if (x < middle) {
@@ -20,13 +20,6 @@ public class BinarySearch {
             } else {
                 return middleIndex;
             }
-        }
-        return -1;
-    }
-
-    static int linearSearch(int[] a, int x) {
-        for (int i = 0; i < a.length; i++) {
-            if (a[i] == x) return i;
         }
         return -1;
     }

@@ -5,7 +5,7 @@ import java.util.*;
 import static java.lang.Math.toIntExact;
 
 public class FibonacciPartialSumFast {
-    protected static long getFibonacciPartialSum(long from, long to) {
+    static long getFibonacciPartialSum(long from, long to) {
         List<Integer> sequence = new ArrayList<>();
 
         int periodLength = findPisanoPeriodLength(10, sequence);
