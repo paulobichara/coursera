@@ -6,8 +6,6 @@ public class ChangeDP {
         int[] coins = new int[] { 1, 3, 4 };
         int[] minCoins = new int[money + 1];
 
-        minCoins[0] = 0;
-
         for (int moneyIndex = 1; moneyIndex <= money; moneyIndex++) {
             final int currentMoney = moneyIndex;
             minCoins[moneyIndex] = Integer.MAX_VALUE;

@@ -5,14 +5,6 @@ public class LCS2 {
     private static int lcs2(int[] first, int[] second) {
         int[][] longestSequences = new int[first.length + 1][second.length + 1];
 
-        for (int row = 0; row <= first.length; row++) {
-            longestSequences[row][0] = 0;
-        }
-
-        for (int column = 0; column <= second.length; column++) {
-            longestSequences[0][column] = 0;
-        }
-
         for (int row = 1; row <= first.length; row++) {
             for (int column = 1; column <= second.length; column++) {
                 longestSequences[row][column] = Math.max(longestSequences[row - 1][column], longestSequences[row][column - 1]);

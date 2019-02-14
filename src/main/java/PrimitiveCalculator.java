@@ -7,7 +7,6 @@ public class PrimitiveCalculator {
 
         for (int operationIndex = 0; operationIndex < 3; operationIndex++) {
             minOperations[operationIndex][0] = Integer.MAX_VALUE;
-            minOperations[operationIndex][1] = 0;
         }
 
         for (int number = 2; number <= target; number++) {
