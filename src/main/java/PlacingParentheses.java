@@ -1,67 +1,65 @@
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Scanner;
 import java.util.stream.Stream;
 
 public class PlacingParentheses {
 
-    private static long getMaxValue(String exp) {
-        long[] numbers = Stream.of(exp.split("[+*-]")).mapToLong(Long::valueOf).toArray();
+    private static BigInteger getMaxValue(String exp) {
+        BigInteger[] numbers = Stream.of(exp.split("[+*\\-]")).map(BigInteger::new).toArray(BigInteger[]::new);
 
-        String[] operations = exp.split("[0-9]+");
-        operations = Arrays.copyOfRange(operations, 1, operations.length);
+        if (numbers.length > 1) {
+            String[] operations = exp.split("[0-9]+");
+            operations = Arrays.copyOfRange(operations, 1, operations.length);
 
-        long[][] maxValues = new long[numbers.length][numbers.length];
-        long[][] minValues = new long[numbers.length][numbers.length];
+            BigInteger[][] maxValues = new BigInteger[numbers.length][numbers.length];
+            BigInteger[][] minValues = new BigInteger[numbers.length][numbers.length];
 
-        for (int numberIndex = 0; numberIndex < numbers.length; numberIndex++) {
-            maxValues[numberIndex][numberIndex] = numbers[numberIndex];
-            minValues[numberIndex][numberIndex] = numbers[numberIndex];
-        }
-
-        for (int separation = 1; separation <= numbers.length - 1; separation++) {
-            for (int index = 0; index < numbers.length - separation; index++) {
-                setMinMax(maxValues, minValues, operations, index, index + separation);
+            for (int numberIndex = 0; numberIndex < numbers.length; numberIndex++) {
+                maxValues[numberIndex][numberIndex] = numbers[numberIndex];
+                minValues[numberIndex][numberIndex] = numbers[numberIndex];
             }
-        }
 
-        return maxValues[0][numbers.length - 1];
+            for (int separation = 1; separation < numbers.length; separation++) {
+                for (int startIndex = 0; startIndex < numbers.length - separation; startIndex++) {
+                    setMinMax(maxValues, minValues, operations, startIndex, startIndex + separation);
+                }
+            }
+
+            return maxValues[0][numbers.length - 1];
+        } else {
+            return numbers[0];
+        }
     }
 
-    private static void setMinMax(long[][] maxValues, long[][] minValues, String[] operations, int start, int end) {
-        long minValue = Long.MAX_VALUE;
-        long maxValue = Long.MIN_VALUE;
+    private static void setMinMax(BigInteger[][] maxValues, BigInteger[][] minValues, String[] operations, int start, int end) {
+        BigInteger minValue = BigInteger.valueOf(Long.MAX_VALUE);
+        BigInteger maxValue = BigInteger.valueOf(Long.MIN_VALUE);
 
         for (int middleIndex = start; middleIndex < end; middleIndex++) {
-            long result1 = applyOperation(maxValues[start][middleIndex], maxValues[middleIndex + 1][end], operations[middleIndex].charAt(0));
-            long result2 = applyOperation(maxValues[start][middleIndex], minValues[middleIndex + 1][end], operations[middleIndex].charAt(0));
-            long result3 = applyOperation(minValues[start][middleIndex], maxValues[middleIndex + 1][end], operations[middleIndex].charAt(0));
-            long result4 = applyOperation(minValues[start][middleIndex], minValues[middleIndex + 1][end], operations[middleIndex].charAt(0));
+            BigInteger result1 = applyOperation(maxValues[start][middleIndex], maxValues[middleIndex + 1][end], operations[middleIndex].charAt(0));
+            BigInteger result2 = applyOperation(maxValues[start][middleIndex], minValues[middleIndex + 1][end], operations[middleIndex].charAt(0));
+            BigInteger result3 = applyOperation(minValues[start][middleIndex], maxValues[middleIndex + 1][end], operations[middleIndex].charAt(0));
+            BigInteger result4 = applyOperation(minValues[start][middleIndex], minValues[middleIndex + 1][end], operations[middleIndex].charAt(0));
 
-            minValue = Math.min(minValue, result1);
-            minValue = Math.min(minValue, result2);
-            minValue = Math.min(minValue, result3);
-            minValue = Math.min(minValue, result4);
-
-            maxValue = Math.max(maxValue, result1);
-            maxValue = Math.max(maxValue, result2);
-            maxValue = Math.max(maxValue, result3);
-            maxValue = Math.max(maxValue, result4);
+            minValue = minValue.min(result1).min(result2).min(result3).min(result4);
+            maxValue = maxValue.max(result1).max(result2).max(result3).max(result4);
         }
 
         maxValues[start][end] = maxValue;
         minValues[start][end] = minValue;
     }
 
-    private static long applyOperation(long a, long b, char op) {
+    private static BigInteger applyOperation(BigInteger a, BigInteger b, char op) {
         if (op == '+') {
-            return a + b;
+            return a.add(b);
         } else if (op == '-') {
-            return a - b;
+            return a.subtract(b);
         } else if (op == '*') {
-            return a * b;
+            return a.multiply(b);
         } else {
             assert false;
-            return 0;
+            return BigInteger.ZERO;
         }
     }
 
