@@ -9,9 +9,6 @@ public class Partition3 {
             return 0;
         }
 
-        // For simplicity, let's use this quick sort implementation
-        Arrays.sort(souvenirs);
-
         int targetForEach = totalValue / 3;
         int[][][] possibleToGetMax = new int[souvenirs.length + 1][targetForEach + 1][targetForEach + 1];
 
