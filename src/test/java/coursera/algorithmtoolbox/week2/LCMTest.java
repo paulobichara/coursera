@@ -26,7 +26,7 @@ public class LCMTest {
         while (true) {
             int number1 = getRandom(MAX_STRESS_NUMBER);
             int number2 = getRandom(MAX_STRESS_NUMBER);
-            System.out.println("Looking for coursera.algorithmtoolbox.week2.LCM between " + number1 + " and " + number2);
+            System.out.println("Looking for " + number1 + " and " + number2);
             long result1 = LCM.lcm(number1, number2);
             long result2 = LCM.lcm_naive(number1, number2);
             Assert.assertEquals(ERROR_MESSAGE, result1, result2);
