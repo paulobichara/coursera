@@ -2,6 +2,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Stack;
 import java.util.StringTokenizer;
@@ -24,6 +25,15 @@ public class TreeHeight {
 
 	private static class Node {
 		private int index;
+
+		@Override
+		public boolean equals(Object obj) {
+			if (!(obj instanceof Node)) {
+				return false;
+			}
+			return this.index == ((Node)obj).index;
+		}
+
 		private List<Node> children = new ArrayList<>();
 		private Node parent;
 
@@ -54,7 +64,7 @@ public class TreeHeight {
 		Stack<Node> treeStack = new Stack<>();
 		Tree tree = createTree(parents);
 
-		addAllChildren(treeStack, tree.getRoot());
+		addAllChildren(treeStack, tree);
 
 		int maxHeight = 0;
 		Node previous = null;
@@ -77,9 +87,20 @@ public class TreeHeight {
 		return previous == null || parents[current.index] == previous.index ? Math.max(maxHeight, height + 1) : maxHeight;
 	}
 
-	private static void addAllChildren(Stack<Node> treeStack, Node current) {
-		current.children.forEach(child -> addAllChildren(treeStack, child));
-		treeStack.push(current);
+	private static void addAllChildren(Stack<Node> treeStack, Tree tree) {
+		int[] lastChildIndex = new int[tree.nodes.length];
+		Arrays.fill(lastChildIndex, -1);
+
+		for (Node current = tree.getRoot(); treeStack.size() != tree.nodes.length;) {
+			int childIndex = lastChildIndex[current.index] + 1;
+			if (childIndex < current.children.size()) {
+				lastChildIndex[current.index] = childIndex;
+				current = current.children.get(childIndex);
+			} else {
+				treeStack.push(current);
+				current = current.equals(tree.getRoot()) ? current : current.parent;
+			}
+		}
 	}
 
 	private static Tree createTree(final int[] parents) {
