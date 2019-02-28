@@ -134,15 +134,6 @@ class Request {
         return startMs + durationMs <= nowMs;
     }
 
-    @Override
-    public boolean equals(Object other) {
-        if (other instanceof Request) {
-            Request request = (Request) other;
-            return arrivalMs == request.arrivalMs && durationMs == request.durationMs;
-        }
-        return false;
-    }
-
     long getStartMs() {
         return startMs;
     }
