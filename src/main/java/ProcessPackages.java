@@ -72,49 +72,64 @@ class Processor {
         }
     }
 
+    private static class State {
+        private int finished = 0;
+        private int currentIndex = 0;
+        private boolean processing = false;
+    }
+
     private Queue queue;
-    private boolean processing;
 
     Processor(int queueSize) {
         queue = new Queue(queueSize);
-        processing = false;
     }
 
     long[] processRequests(Request[] requests) {
         long[] responses = new long[requests.length];
+        State state = new State();
 
-        int index = 0;
-        int finished = 0;
+        for (long nowMs = 0; state.finished != requests.length; nowMs++) {
+            dequeueFinished(state, nowMs, responses);
+            enqueueArriving(state, nowMs, requests, responses);
 
-        for (long nowMs = 0; finished != requests.length; nowMs++) {
-            if (!queue.isEmpty() && queue.head.value.isFinished(nowMs)) {
-                Request request = queue.dequeue();
-                responses[request.getArrayIndex()] = request.getStartMs();
-                finished++;
-                processing = false;
-            }
-
-            while (index < requests.length && requests[index].getArrivalMs() == nowMs) {
-                if (queue.isEmpty() && requests[index].getDurationMs() == 0 && !processing) {
-                    responses[index] = nowMs;
-                    finished++;
-                } else {
-                    try {
-                        queue.enqueue(requests[index]);
-                    } catch (QueueFullException e) {
-                        responses[index] = -1;
-                        finished++;
-                    }
-                }
-                index++;
-            }
-
-            if (!queue.isEmpty() && !processing) {
+            while (!queue.isEmpty() && !state.processing) {
                 queue.head.value.setStartMs(nowMs);
-                processing = true;
+                if (queue.head.value.getDurationMs() == 0) {
+                    Request request = queue.dequeue();
+                    responses[request.getArrayIndex()] = request.getStartMs();
+                    state.finished++;
+                } else {
+                    state.processing = true;
+                }
             }
         }
         return responses;
+    }
+
+    private void dequeueFinished(State state, long nowMs, long[] responses) {
+        if (!queue.isEmpty() && queue.head.value.isFinished(nowMs)) {
+            Request request = queue.dequeue();
+            responses[request.getArrayIndex()] = request.getStartMs();
+            state.finished++;
+            state.processing = false;
+        }
+    }
+
+    private void enqueueArriving(State state, long nowMs, Request[] requests, long[] responses) {
+        while (state.currentIndex < requests.length && requests[state.currentIndex].getArrivalMs() == nowMs) {
+            if (queue.isEmpty() && requests[state.currentIndex].getDurationMs() == 0) {
+                responses[state.currentIndex] = nowMs;
+                state.finished++;
+            } else {
+                try {
+                    queue.enqueue(requests[state.currentIndex]);
+                } catch (QueueFullException e) {
+                    responses[state.currentIndex] = -1;
+                    state.finished++;
+                }
+            }
+            state.currentIndex++;
+        }
     }
 }
 
