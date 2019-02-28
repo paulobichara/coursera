@@ -1,5 +1,5 @@
 import java.util.Scanner;
-import java.util.stream.LongStream;
+import java.util.stream.IntStream;
 
 class Processor {
 
@@ -84,11 +84,11 @@ class Processor {
         queue = new Queue(queueSize);
     }
 
-    long[] processRequests(Request[] requests) {
-        long[] responses = new long[requests.length];
+    int[] processRequests(Request[] requests) {
+        int[] responses = new int[requests.length];
         State state = new State();
 
-        for (long nowMs = 0; state.finished != requests.length; nowMs++) {
+        for (int nowMs = 0; state.finished != requests.length; nowMs++) {
             dequeueFinished(state, nowMs, responses);
             enqueueArriving(state, nowMs, requests, responses);
 
@@ -106,7 +106,7 @@ class Processor {
         return responses;
     }
 
-    private void dequeueFinished(State state, long nowMs, long[] responses) {
+    private void dequeueFinished(State state, int nowMs, int[] responses) {
         if (!queue.isEmpty() && queue.head.value.isFinished(nowMs)) {
             Request request = queue.dequeue();
             responses[request.getArrayIndex()] = request.getStartMs();
@@ -115,7 +115,7 @@ class Processor {
         }
     }
 
-    private void enqueueArriving(State state, long nowMs, Request[] requests, long[] responses) {
+    private void enqueueArriving(State state, int nowMs, Request[] requests, int[] responses) {
         while (state.currentIndex < requests.length && requests[state.currentIndex].getArrivalMs() == nowMs) {
             if (queue.isEmpty() && requests[state.currentIndex].getDurationMs() == 0) {
                 responses[state.currentIndex] = nowMs;
@@ -135,11 +135,11 @@ class Processor {
 
 class Request {
     private int arrayIndex;
-    private long arrivalMs;
-    private long startMs;
-    private long durationMs;
+    private int arrivalMs;
+    private int startMs;
+    private int durationMs;
 
-    Request(int arrayIndex, long arrivalMs, long durationMs) {
+    Request(int arrayIndex, int arrivalMs, int durationMs) {
         this.arrayIndex = arrayIndex;
         this.arrivalMs = arrivalMs;
         this.durationMs = durationMs;
@@ -149,19 +149,19 @@ class Request {
         return startMs + durationMs <= nowMs;
     }
 
-    long getStartMs() {
+    int getStartMs() {
         return startMs;
     }
 
-    void setStartMs(long startMs) {
+    void setStartMs(int startMs) {
         this.startMs = startMs;
     }
 
-    long getDurationMs() {
+    int getDurationMs() {
         return durationMs;
     }
 
-    long getArrivalMs() {
+    int getArrivalMs() {
         return arrivalMs;
     }
 
@@ -183,7 +183,7 @@ class ProcessPackages {
             requests[index] = new Request(index, scanner.nextInt(), scanner.nextInt());
         }
 
-        LongStream.of(processor.processRequests(requests)).forEach(System.out::println);
+        IntStream.of(processor.processRequests(requests)).forEach(System.out::println);
     }
 
 }
