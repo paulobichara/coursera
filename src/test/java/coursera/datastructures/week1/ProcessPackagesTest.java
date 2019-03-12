@@ -1,3 +1,7 @@
+package coursera.datastructures.week1;
+
+import coursera.datastructures.week1.Processor;
+import coursera.datastructures.week1.Request;
 import java.util.Random;
 import java.util.stream.IntStream;
 import org.junit.Assert;

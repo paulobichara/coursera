@@ -1,3 +1,5 @@
+package coursera.datastructures.week1;
+
 import java.util.*;
 import java.io.*;
 

@@ -1,3 +1,5 @@
+package coursera.datastructures.week1;
+
 import java.util.Scanner;
 import java.util.stream.IntStream;
 

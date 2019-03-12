@@ -1,3 +1,6 @@
+package coursera.datastructures.week1;
+
+import coursera.datastructures.week1.TreeHeight;
 import org.junit.Assert;
 import org.junit.Test;
 
