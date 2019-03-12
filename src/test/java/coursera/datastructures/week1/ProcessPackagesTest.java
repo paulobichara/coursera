@@ -1,20 +1,12 @@
 package coursera.datastructures.week1;
 
-import coursera.datastructures.week1.Processor;
-import coursera.datastructures.week1.Request;
-import java.util.Random;
 import java.util.stream.IntStream;
 import org.junit.Assert;
 import org.junit.Test;
 
 public class ProcessPackagesTest {
 
-    private static final Random RANDOM = new Random();
     private static final int MAX_REQUESTS = 100000;
-    private static final int MAX_BUFFER_SIZE = 100000;
-    private static final int MAX_ARRIVAL = 1000000;
-    private static final int MAX_DURATION = 1000;
-    private static final int TEST = 100000000;
 
     @Test
     public void testSamples() {
