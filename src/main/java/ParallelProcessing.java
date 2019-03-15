@@ -9,7 +9,7 @@ import java.util.stream.Stream;
 public class ParallelProcessing {
 
     static class Job {
-        private int startTime;
+        private long startTime;
         private int duration;
         private int threadIndex;
 
@@ -26,7 +26,7 @@ public class ParallelProcessing {
             this.index = index;
         }
 
-        void run(Job job, int now) {
+        void run(Job job, long now) {
             this.job = job;
             this.job.startTime = now;
             this.job.threadIndex = index;
@@ -36,7 +36,7 @@ public class ParallelProcessing {
             this.job = null;
         }
 
-        int getNextFreeTime() {
+        long getNextFreeTime() {
             return job.startTime + job.duration;
         }
 
@@ -156,7 +156,8 @@ public class ParallelProcessing {
         }
 
         void processJobs(Job[] jobs) {
-            for (int index = 0, now = 0; index < jobs.length;) {
+            long now = 0;
+            for (int index = 0; index < jobs.length;) {
                 updateBusyThreadsHeap(now);
                 if (idleThreads.isEmpty()) {
                     now = busyThreads.peekBest().getNextFreeTime();
@@ -167,7 +168,7 @@ public class ParallelProcessing {
             }
         }
 
-        private void updateBusyThreadsHeap(int now) {
+        private void updateBusyThreadsHeap(long now) {
             while (busyThreads.isNotEmpty() && busyThreads.peekBest().getNextFreeTime() == now) {
                 Thread thread = busyThreads.extractBest();
                 thread.finish();
@@ -175,7 +176,7 @@ public class ParallelProcessing {
             }
         }
 
-        private void allocateJobToIdleThread(Job job, int now) {
+        private void allocateJobToIdleThread(Job job, long now) {
             Thread thread = idleThreads.extractBest();
             thread.run(job, now);
             busyThreads.insert(thread);
