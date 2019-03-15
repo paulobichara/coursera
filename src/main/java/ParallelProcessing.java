@@ -119,12 +119,12 @@ public class ParallelProcessing {
             int bestIndex = index;
 
             int leftChildIndex = leftChildIndex(index);
-            if (leftChildIndex < array.length && comparator.hasHigherPriority(array[leftChildIndex], array[bestIndex])) {
+            if (leftChildIndex < size && comparator.hasHigherPriority(array[leftChildIndex], array[bestIndex])) {
                 bestIndex = leftChildIndex;
             }
 
             int rightChildIndex = rightChildIndex(index);
-            if (rightChildIndex < array.length && comparator.hasHigherPriority(array[rightChildIndex], array[bestIndex])) {
+            if (rightChildIndex < size && comparator.hasHigherPriority(array[rightChildIndex], array[bestIndex])) {
                 bestIndex = rightChildIndex;
             }
 
