@@ -4,6 +4,30 @@ import java.io.InputStreamReader;
 import java.util.Random;
 import java.util.StringTokenizer;
 
+class FastScanner {
+    private BufferedReader br;
+    private StringTokenizer st;
+
+    FastScanner() {
+        br = new BufferedReader(new InputStreamReader(System.in));
+    }
+
+    String next() {
+        while (st == null || !st.hasMoreTokens()) {
+            try {
+                st = new StringTokenizer(br.readLine());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return st.nextToken();
+    }
+
+    int nextInt() {
+        return Integer.parseInt(next());
+    }
+}
+
 class PhoneBook {
     class HashFunction {
         static final int PRIME = 10000019;
@@ -27,48 +51,21 @@ class PhoneBook {
 
     private HashFunction hashFunction;
 
-    PhoneBook() {
+    private PhoneBook() {
         table = new String[HashFunction.CARDINALITY];
         hashFunction = new HashFunction();
     }
 
-    void add(int number, String name) {
+    private void add(int number, String name) {
         table[hashFunction.calculateHash(number)] = name;
     }
 
-    void del(int number) {
+    private void del(int number) {
         table[hashFunction.calculateHash(number)] = null;
     }
 
-    String find(int number) {
+    private String find(int number) {
         return table[hashFunction.calculateHash(number)];
-    }
-}
-
-public class PhoneBookProblem {
-
-    static class FastScanner {
-        BufferedReader br;
-        StringTokenizer st;
-
-        FastScanner() {
-            br = new BufferedReader(new InputStreamReader(System.in));
-        }
-
-        String next() {
-            while (st == null || !st.hasMoreTokens()) {
-                try {
-                    st = new StringTokenizer(br.readLine());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            return st.nextToken();
-        }
-
-        int nextInt() {
-            return Integer.parseInt(next());
-        }
     }
 
     public static void main(String[] args) {
@@ -91,5 +88,4 @@ public class PhoneBookProblem {
             }
         }
     }
-
 }
