@@ -4,31 +4,32 @@ import java.io.InputStreamReader;
 import java.util.Random;
 import java.util.StringTokenizer;
 
-class FastScanner {
-    private BufferedReader br;
-    private StringTokenizer st;
-
-    FastScanner() {
-        br = new BufferedReader(new InputStreamReader(System.in));
-    }
-
-    String next() {
-        while (st == null || !st.hasMoreTokens()) {
-            try {
-                st = new StringTokenizer(br.readLine());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        return st.nextToken();
-    }
-
-    int nextInt() {
-        return Integer.parseInt(next());
-    }
-}
 
 class PhoneBook {
+    private static class FastScanner {
+        private BufferedReader br;
+        private StringTokenizer st;
+
+        FastScanner() {
+            br = new BufferedReader(new InputStreamReader(System.in));
+        }
+
+        String next() {
+            while (st == null || !st.hasMoreTokens()) {
+                try {
+                    st = new StringTokenizer(br.readLine());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            return st.nextToken();
+        }
+
+        int nextInt() {
+            return Integer.parseInt(next());
+        }
+    }
+
     class HashFunction {
         static final int PRIME = 10000019;
         static final int CARDINALITY = 10000000;
