@@ -1,7 +1,6 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.math.BigInteger;
 import java.util.Random;
 import java.util.StringTokenizer;
 
@@ -10,18 +9,17 @@ class PhoneBook {
         static final int PRIME = 10000019;
         static final int CARDINALITY = 10000000;
 
-        BigInteger param1;
-        BigInteger param2;
+        long param1;
+        long param2;
 
         HashFunction() {
             Random random = new Random();
-            this.param1 = BigInteger.valueOf(random.nextInt(PRIME - 1) + 1);
-            this.param2 = BigInteger.valueOf(random.nextInt(PRIME));
+            this.param1 = random.nextInt(PRIME - 1) + 1;
+            this.param2 = random.nextInt(PRIME);
         }
 
         int calculateHash(int number) {
-            return param1.multiply(BigInteger.valueOf(number)).add(param2).mod(BigInteger.valueOf(PRIME))
-                    .mod(BigInteger.valueOf(CARDINALITY)).intValueExact();
+            return (int) ((param1 * number + param2) % PRIME) % CARDINALITY;
         }
     }
 
