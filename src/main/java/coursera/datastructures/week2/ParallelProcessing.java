@@ -1,3 +1,5 @@
+package coursera.datastructures.week2;
+
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
