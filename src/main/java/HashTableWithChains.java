@@ -85,11 +85,10 @@ class HashTableWithChains {
         }
 
         int calculateHash(String value) {
-            double hash = 0;
-            for (int index = 0; index < value.length(); index++) {
-                hash = (hash + (((long) value.charAt(index)) * Math.pow(X_FACTOR, index))) % PRIME;
-            }
-            return (int) ((hash) % cardinality);
+            long hash = 0;
+            for (int i = value.length() - 1; i >= 0; --i)
+                hash = (hash * X_FACTOR + value.charAt(i)) % PRIME;
+            return (int)hash % cardinality;
         }
     }
 
