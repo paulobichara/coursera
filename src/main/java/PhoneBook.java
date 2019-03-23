@@ -31,8 +31,8 @@ class PhoneBook {
     }
 
     class HashFunction {
-        static final int PRIME = 10000019;
-        static final int CARDINALITY = 10000000;
+        static final int PRIME = 10_000_019;
+        static final int CARDINALITY = 10_000_000;
 
         long param1;
         long param2;
