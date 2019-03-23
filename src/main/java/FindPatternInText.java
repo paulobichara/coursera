@@ -10,7 +10,7 @@ public class FindPatternInText {
     static class HashFunction {
         static final int PRIME = 1_000_000_007;
         static final int CARDINALITY = 1_000_000_000;
-        static final int X_FACTOR = 263;
+        static final long X_FACTOR = 263;
 
         int computeHash(String value) {
             long hash = 0;
@@ -29,7 +29,8 @@ public class FindPatternInText {
                 y = (y * X_FACTOR) % PRIME;
             }
             for (int index = lastSubStrIndex - 1; index >= 0; index--) {
-                hashes[index] = (int) (X_FACTOR * hashes[index + 1] + text.charAt(index) - y * text.charAt(index + pattern.length())) % PRIME;
+                hashes[index] = (int) ((((X_FACTOR * hashes[index + 1] + text.charAt(index)
+                        - y * text.charAt(index + pattern.length())) % PRIME) + PRIME) % PRIME);
             }
             return hashes;
         }
