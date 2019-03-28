@@ -106,34 +106,37 @@ public class TreeOrders {
         Node current;
 
         for (int index = 0; index < nodes.length; index++) {
-            if (nodes[index] == null) {
-                nodes[index] = new Node(index);
-            }
+            createNodeIfNeeded(nodes, index);
             current = nodes[index];
             current.key = in.nextInt();
 
             int leftChildIndex = in.nextInt();
             if (leftChildIndex != -1) {
-                if (nodes[leftChildIndex] == null) {
-                    nodes[leftChildIndex] = new Node(leftChildIndex);
-                }
+                createNodeIfNeeded(nodes, leftChildIndex);
                 current.leftChild = nodes[leftChildIndex];
             }
 
             int rightChildIndex = in.nextInt();
             if (rightChildIndex != -1) {
-                if (nodes[rightChildIndex] == null) {
-                    nodes[rightChildIndex] = new Node(rightChildIndex);
-                }
+                createNodeIfNeeded(nodes, rightChildIndex);
                 current.rightChild = nodes[rightChildIndex];
             }
         }
 
-        BinarySearchTree tree = new BinarySearchTree(nodes);
+        printResponse(new BinarySearchTree(nodes));
+    }
+
+    private static void printResponse(BinarySearchTree tree) {
         tree.listInOrder(tree.getRoot(), new ArrayList<>()).forEach(key -> System.out.print(key + " "));
         System.out.println();
         tree.listPreOrder(tree.getRoot(), new ArrayList<>()).forEach(key -> System.out.print(key + " "));
         System.out.println();
         tree.listPostOrder(tree.getRoot(), new ArrayList<>()).forEach(key -> System.out.print(key + " "));
+    }
+
+    private static void createNodeIfNeeded(Node[] nodes, int index) {
+        if (nodes[index] == null) {
+            nodes[index] = new Node(index);
+        }
     }
 }
