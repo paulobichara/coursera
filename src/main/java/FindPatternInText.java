@@ -3,14 +3,15 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.StringTokenizer;
 
 public class FindPatternInText {
 
     static class HashFunction {
-        static final int PRIME = 1_000_000_007;
-        static final int CARDINALITY = 1_000_000_000;
-        static final long X_FACTOR = 263;
+        static final int PRIME = 2_000_000_007;
+        static final int CARDINALITY = 2_000_000_000;
+        static final long X_FACTOR = new Random(System.currentTimeMillis()).nextInt(PRIME - 1) + 1;
 
         int computeHash(String value) {
             long hash = 0;
