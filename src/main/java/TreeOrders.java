@@ -3,6 +3,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 import java.util.StringTokenizer;
 
 public class TreeOrders {
@@ -31,6 +32,26 @@ public class TreeOrders {
         }
     }
 
+    private static class Node {
+        private int index;
+        private int key;
+        private Node leftChild;
+        private Node rightChild;
+        private Node parent;
+
+        Node(int index) {
+            this.index = index;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!(obj instanceof Node)) {
+                return false;
+            }
+            return this.index == ((Node)obj).index;
+        }
+    }
+
     private static class BinarySearchTree {
         private Node[] nodes;
 
@@ -38,17 +59,39 @@ public class TreeOrders {
             this.nodes = nodes;
         }
 
-        List<Integer> listInOrder(Node node, List<Integer> nodeKeys) {
-            if (node.leftChild != null) {
-                listInOrder(node.leftChild, nodeKeys);
-            }
+        List<Integer> listInOrder() {
+            List<Integer> inOrderNodes = new Stack<>();
+            Node[] previousNodes = new Node[nodes.length];
 
-            nodeKeys.add(node.key);
-
-            if (node.rightChild != null) {
-                listInOrder(node.rightChild, nodeKeys);
+            for (Node current = getRoot(); inOrderNodes.size() != nodes.length;) {
+                if (previousNodes[current.index] == null) {
+                    if (current.leftChild != null) {
+                        previousNodes[current.index] = current.leftChild;
+                        current = current.leftChild;
+                    } else {
+                        inOrderNodes.add(current.key);
+                        if (current.rightChild != null) {
+                            previousNodes[current.index] = current.rightChild;
+                            current = current.rightChild;
+                        } else {
+                            previousNodes[current.index] = current;
+                            current = current.parent;
+                        }
+                    }
+                } else if (previousNodes[current.index].equals(current.leftChild)) {
+                    inOrderNodes.add(current.key);
+                    if (current.rightChild != null) {
+                        previousNodes[current.index] = current.rightChild;
+                        current = current.rightChild;
+                    } else {
+                        previousNodes[current.index] = current;
+                        current = current.parent;
+                    }
+                } else if (previousNodes[current.index].equals(current.rightChild)) {
+                    current = current.parent;
+                }
             }
-            return nodeKeys;
+            return inOrderNodes;
         }
 
         List<Integer> listPreOrder(Node node, List<Integer> nodeKeys) {
@@ -81,25 +124,6 @@ public class TreeOrders {
         }
     }
 
-    private static class Node {
-        private int index;
-        private int key;
-        private Node leftChild;
-        private Node rightChild;
-
-        Node(int index) {
-            this.index = index;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (!(obj instanceof Node)) {
-                return false;
-            }
-            return this.index == ((Node)obj).index;
-        }
-    }
-
     public static void main(String[] args) {
         FastScanner in = new FastScanner();
         Node[] nodes = new Node[in.nextInt()];
@@ -114,12 +138,14 @@ public class TreeOrders {
             if (leftChildIndex != -1) {
                 createNodeIfNeeded(nodes, leftChildIndex);
                 current.leftChild = nodes[leftChildIndex];
+                nodes[leftChildIndex].parent = current;
             }
 
             int rightChildIndex = in.nextInt();
             if (rightChildIndex != -1) {
                 createNodeIfNeeded(nodes, rightChildIndex);
                 current.rightChild = nodes[rightChildIndex];
+                nodes[rightChildIndex].parent = current;
             }
         }
 
@@ -127,7 +153,7 @@ public class TreeOrders {
     }
 
     private static void printResponse(BinarySearchTree tree) {
-        tree.listInOrder(tree.getRoot(), new ArrayList<>()).forEach(key -> System.out.print(key + " "));
+        tree.listInOrder().forEach(key -> System.out.print(key + " "));
         System.out.println();
         tree.listPreOrder(tree.getRoot(), new ArrayList<>()).forEach(key -> System.out.print(key + " "));
         System.out.println();
