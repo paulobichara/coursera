@@ -3,7 +3,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Stack;
 import java.util.StringTokenizer;
 
 public class TreeOrders {
@@ -60,63 +59,68 @@ public class TreeOrders {
         }
 
         List<Integer> listInOrder() {
-            List<Integer> inOrderNodes = new Stack<>();
+            List<Integer> inOrderNodes = new ArrayList<>();
             Node[] previousNodes = new Node[nodes.length];
 
             for (Node current = getRoot(); inOrderNodes.size() != nodes.length;) {
-                if (previousNodes[current.index] == null) {
-                    if (current.leftChild != null) {
-                        previousNodes[current.index] = current.leftChild;
-                        current = current.leftChild;
-                    } else {
-                        inOrderNodes.add(current.key);
-                        if (current.rightChild != null) {
-                            previousNodes[current.index] = current.rightChild;
-                            current = current.rightChild;
-                        } else {
-                            previousNodes[current.index] = current;
-                            current = current.parent;
-                        }
-                    }
-                } else if (previousNodes[current.index].equals(current.leftChild)) {
+                if (previousNodes[current.index] == null && current.leftChild != null) {
+                    previousNodes[current.index] = current.leftChild;
+                    current = current.leftChild;
+                } else if ((previousNodes[current.index] == null && current.leftChild == null)
+                        || (previousNodes[current.index].equals(current.leftChild))) {
                     inOrderNodes.add(current.key);
-                    if (current.rightChild != null) {
-                        previousNodes[current.index] = current.rightChild;
-                        current = current.rightChild;
-                    } else {
-                        previousNodes[current.index] = current;
-                        current = current.parent;
-                    }
-                } else if (previousNodes[current.index].equals(current.rightChild)) {
+                    previousNodes[current.index] = current;
+                } else if (current.equals(previousNodes[current.index]) && current.rightChild != null) {
+                    previousNodes[current.index] = current.rightChild;
+                    current = current.rightChild;
+                } else {
                     current = current.parent;
                 }
             }
             return inOrderNodes;
         }
 
-        List<Integer> listPreOrder(Node node, List<Integer> nodeKeys) {
-            nodeKeys.add(node.key);
+        List<Integer> listPreOrder() {
+            List<Integer> preOrderNodes = new ArrayList<>();
+            Node[] previousNodes = new Node[nodes.length];
 
-            if (node.leftChild != null) {
-                listPreOrder(node.leftChild, nodeKeys);
+            for (Node current = getRoot(); current != null && preOrderNodes.size() != nodes.length;) {
+                if (previousNodes[current.index] == null) {
+                    preOrderNodes.add(current.key);
+                    previousNodes[current.index] = current;
+                } else if (previousNodes[current.index].equals(current) && current.leftChild != null) {
+                    previousNodes[current.index] = current.leftChild;
+                    current = current.leftChild;
+                } else if (current.rightChild != null && (previousNodes[current.index].equals(current.leftChild)
+                        || (current.equals(previousNodes[current.index]) && current.leftChild == null))) {
+                    previousNodes[current.index] = current.rightChild;
+                    current = current.rightChild;
+                } else {
+                    current = current.parent;
+                }
             }
-
-            if (node.rightChild != null) {
-                listPreOrder(node.rightChild, nodeKeys);
-            }
-            return nodeKeys;
+            return preOrderNodes;
         }
 
-        List<Integer> listPostOrder(Node node, List<Integer> nodeKeys) {
-            if (node.leftChild != null) {
-                listPostOrder(node.leftChild, nodeKeys);
-            }
+        List<Integer> listPostOrder() {
+            List<Integer> postOrderNodes = new ArrayList<>();
+            Node[] previousNodes = new Node[nodes.length];
 
-            if (node.rightChild != null) {
-                listPostOrder(node.rightChild, nodeKeys);
+            for (Node current = getRoot(); postOrderNodes.size() != nodes.length;) {
+                if (previousNodes[current.index] == null && current.leftChild != null) {
+                    previousNodes[current.index] = current.leftChild;
+                    current = current.leftChild;
+                } else if (current.rightChild != null
+                        && ((previousNodes[current.index] == null && current.leftChild == null)
+                            || (previousNodes[current.index].equals(current.leftChild)))) {
+                    previousNodes[current.index] = current.rightChild;
+                    current = current.rightChild;
+                } else {
+                    postOrderNodes.add(current.key);
+                    current = current.parent;
+                }
             }
-            nodeKeys.add(node.key);
-            return nodeKeys;
+            return postOrderNodes;
         }
 
         Node getRoot() {
@@ -155,9 +159,9 @@ public class TreeOrders {
     private static void printResponse(BinarySearchTree tree) {
         tree.listInOrder().forEach(key -> System.out.print(key + " "));
         System.out.println();
-        tree.listPreOrder(tree.getRoot(), new ArrayList<>()).forEach(key -> System.out.print(key + " "));
+        tree.listPreOrder().forEach(key -> System.out.print(key + " "));
         System.out.println();
-        tree.listPostOrder(tree.getRoot(), new ArrayList<>()).forEach(key -> System.out.print(key + " "));
+        tree.listPostOrder().forEach(key -> System.out.print(key + " "));
     }
 
     private static void createNodeIfNeeded(Node[] nodes, int index) {
