@@ -54,6 +54,12 @@ public class BinaryTreeCheck {
         }
     }
 
+    private static class InvalidBSTException extends Exception {
+        InvalidBSTException() {
+            super("This is not a valid binary search tree!");
+        }
+    }
+
     private static class BinaryTree {
         Node[] nodes;
         List<Node> leaves;
@@ -63,9 +69,12 @@ public class BinaryTreeCheck {
             this.leaves = leaves;
         }
 
-        Node find(long key) {
+        Node find(long key) throws InvalidBSTException {
             Node current = getRoot();
             while (current != null && current.key != key) {
+                if (!isNodeConsistent(current)) {
+                    throw new InvalidBSTException();
+                }
                 if (key > current.key) {
                     current = current.rightChild;
                 } else {
@@ -75,9 +84,18 @@ public class BinaryTreeCheck {
             return current;
         }
 
+        boolean isNodeConsistent(Node node) {
+            return (node.leftChild == null || node.leftChild.key < node.key)
+                    && (node.rightChild == null || node.rightChild.key > node.key);
+        }
+
         boolean isBinarySearchTree() {
             for (Node leaf : leaves) {
-                if (find(leaf.key) == null) {
+                try {
+                    if (find(leaf.key) == null) {
+                        return false;
+                    }
+                } catch (InvalidBSTException e) {
                     return false;
                 }
             }
