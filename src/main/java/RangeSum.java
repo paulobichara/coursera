@@ -66,7 +66,7 @@ public class RangeSum {
 
         default void updateGreatGrandparent(Node node, Node grandparent, Node greatGrandparent) {
             if (greatGrandparent != null) {
-                if (greatGrandparent.leftChild.equals(grandparent)) {
+                if (grandparent.equals(greatGrandparent.leftChild)) {
                     greatGrandparent.leftChild = node;
                 } else {
                     greatGrandparent.rightChild = node;
