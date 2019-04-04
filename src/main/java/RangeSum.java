@@ -50,7 +50,7 @@ public class RangeSum {
         void updateSum() {
             long sumLeft = leftChild == null ? 0 : leftChild.sum;
             long sumRight = rightChild == null ? 0 : rightChild.sum;
-            sum = sumLeft + sumRight + 1;
+            sum = sumLeft + sumRight + key;
         }
 
         @Override
@@ -198,7 +198,7 @@ public class RangeSum {
 
         @Override
         public boolean isApplicable(Node node) {
-            return node.parent.parent == null;
+            return node.parent != null && node.parent.parent == null;
         }
 
         @Override
@@ -262,9 +262,8 @@ public class RangeSum {
             Node next = next(node);
             if (next != null) {
                 splay(next);
+                splay(node);
             }
-
-            splay(node);
 
             Node leftChild = node.leftChild;
             Node rightChild = node.rightChild;
@@ -305,7 +304,7 @@ public class RangeSum {
             SplayTree[] splitTreesLower = split(lowerFactor, true);
             SplayTree[] splitTreesHigher = splitTreesLower[1].split(higherFactor, false);
 
-            lastSumValue = splitTreesHigher[0].root.sum;
+            lastSumValue = splitTreesHigher[0].root != null ? splitTreesHigher[0].root.sum : 0;
 
             SplayTree higherTree = splitTreesHigher[0];
             higherTree.merge(splitTreesHigher[1]);
@@ -316,6 +315,10 @@ public class RangeSum {
             root = resultTree.root;
 
             return lastSumValue;
+        }
+
+        long calculateKey(long factor) {
+            return (factor + lastSumValue) % PRIME;
         }
 
         private void splay(Node node) {
@@ -330,46 +333,57 @@ public class RangeSum {
             long key = calculateKey(factor);
             Node node = find(factor);
             if (node != null) {
-                splay(node);
-                if ((!inclusiveInSecond && node.key >= key) || (inclusiveInSecond && node.key > key)) {
-                    Node leftChild = node.leftChild;
-                    node.leftChild = null;
-                    if (leftChild != null) {
-                        leftChild.parent = null;
-                    }
-                    SplayTree first = new SplayTree();
-                    first.root = leftChild;
-                    return new SplayTree[]{ first, this };
+
+                if (node.key > key) {
+                    return cutLeft(node);
+                } else if (node.key < key) {
+                    return cutRight(node);
                 } else {
-                    Node rightChild = node.rightChild;
-                    node.rightChild = null;
-                    if (rightChild != null) {
-                        rightChild.parent = null;
+                    if (inclusiveInSecond) {
+                        return cutLeft(node);
+                    } else {
+                        return cutRight(node);
                     }
-                    SplayTree second = new SplayTree();
-                    second.root = rightChild;
-                    return new SplayTree[]{ this, second };
                 }
             }
             return new SplayTree[] {new SplayTree(), new SplayTree()};
         }
 
+        private SplayTree[] cutLeft(Node node) {
+            Node leftChild = node.leftChild;
+            node.leftChild = null;
+            if (leftChild != null) {
+                leftChild.parent = null;
+            }
+            SplayTree first = new SplayTree();
+            first.lastSumValue = lastSumValue;
+            first.root = leftChild;
+            return new SplayTree[]{ first, this };
+        }
+
+        private SplayTree[] cutRight(Node node) {
+            Node rightChild = node.rightChild;
+            node.rightChild = null;
+            if (rightChild != null) {
+                rightChild.parent = null;
+            }
+            SplayTree second = new SplayTree();
+            second.lastSumValue = lastSumValue;
+            second.root = rightChild;
+            return new SplayTree[]{ this, second };
+        }
+
         private void merge(SplayTree other) {
-            Node greatest = find(Long.MAX_VALUE);
+            Node greatest = find(PRIME - 1 - lastSumValue);
             if (greatest == null) {
                 root = other.root;
             } else {
-                splay(greatest);
                 if (other.root != null) {
                     greatest.rightChild = other.root;
                     other.root.parent = greatest;
                 }
                 other.root = root;
             }
-        }
-
-        private long calculateKey(long key) {
-            return (key + lastSumValue) % PRIME;
         }
 
         private Node next(Node node) {
@@ -408,7 +422,9 @@ public class RangeSum {
                     tree.delete(in.nextInt());
                     break;
                 case "?":
-                    System.out.println(tree.find(in.nextInt()) == null ? NOT_FOUND : FOUND);
+                    int factor = in.nextInt();
+                    Node found = tree.find(factor);
+                    System.out.println(found == null || found.key != tree.calculateKey(factor) ? NOT_FOUND : FOUND);
                     break;
                 case "s":
                     System.out.println(tree.sum(in.nextInt(), in.nextInt()));
