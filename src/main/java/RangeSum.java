@@ -2,7 +2,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.StringTokenizer;
-import java.util.stream.Stream;
 
 public class RangeSum {
 
@@ -64,9 +63,7 @@ public class RangeSum {
 
     //TODO optimize the number of comparisons executed by checking and applying the strategy in the same step
     private interface SplayStrategy {
-        boolean isApplicable(Node node);
-
-        void splay(Node node);
+        boolean splayIfApplicable(Node node);
 
         default void updateGreatGrandparent(Node node, Node grandparent, Node greatGrandparent) {
             if (greatGrandparent != null) {
@@ -89,11 +86,6 @@ public class RangeSum {
 
     private static class ZigZigStrategy implements  SplayStrategy {
 
-        @Override
-        public boolean isApplicable(Node node) {
-            return isLeftCase(node) || isRightCase(node);
-        }
-
         private boolean isLeftCase(Node node) {
             return node.equals(node.parent.leftChild) && node.parent.equals(node.parent.parent.leftChild);
         }
@@ -103,11 +95,11 @@ public class RangeSum {
         }
 
         @Override
-        public void splay(Node node) {
+        public boolean splayIfApplicable(Node node) {
             Node parent = node.parent;
             Node grandparent = parent == null ? null : parent.parent;
             if (parent == null || grandparent == null) {
-                return;
+                return false;
             }
 
             Node greatGrandparent = grandparent.parent;
@@ -122,7 +114,7 @@ public class RangeSum {
                 parent.rightChild = grandparent;
                 grandparent.leftChild = oldParentRight;
                 grandparent.parent = parent;
-            } else {
+            } else if (isRightCase(node)) {
                 Node oldLeft = node.leftChild;
                 Node oldParentLeft = parent.leftChild;
                 node.parent = grandparent.parent;
@@ -132,19 +124,17 @@ public class RangeSum {
                 parent.leftChild = grandparent;
                 grandparent.rightChild = oldParentLeft;
                 grandparent.parent = parent;
+            } else {
+                return false;
             }
 
             updateGreatGrandparent(node, grandparent, greatGrandparent);
             updateSumInAncestors(grandparent);
+            return true;
         }
     }
 
     private static class ZigZagStrategy implements  SplayStrategy {
-
-        @Override
-        public boolean isApplicable(Node node) {
-            return isLessThanCase(node) || isGreaterThanCase(node);
-        }
 
         private boolean isLessThanCase(Node node) {
             return node.equals(node.parent.rightChild) && node.parent.equals(node.parent.parent.leftChild);
@@ -155,11 +145,11 @@ public class RangeSum {
         }
 
         @Override
-        public void splay(Node node) {
+        public boolean splayIfApplicable(Node node) {
             Node parent = node.parent;
             Node grandparent = parent == null ? null : parent.parent;
             if (parent == null || grandparent == null) {
-                return;
+                return false;
             }
 
             Node greatGrandparent = grandparent.parent;
@@ -174,7 +164,7 @@ public class RangeSum {
                 parent.rightChild = oldLeft;
                 grandparent.parent = node;
                 grandparent.leftChild = oldRight;
-            } else {
+            } else if (isGreaterThanCase(node)) {
                 Node oldRight = node.rightChild;
                 Node oldLeft = node.leftChild;
                 node.parent = grandparent.parent;
@@ -184,6 +174,8 @@ public class RangeSum {
                 parent.leftChild = oldRight;
                 grandparent.parent = node;
                 grandparent.rightChild = oldLeft;
+            } else {
+                return false;
             }
 
             updateGreatGrandparent(node, grandparent, greatGrandparent);
@@ -191,21 +183,17 @@ public class RangeSum {
             parent.updateSum();
             grandparent.updateSum();
             updateSumInAncestors(node);
+            return true;
         }
     }
 
     private static class ZigStrategy implements  SplayStrategy {
 
         @Override
-        public boolean isApplicable(Node node) {
-            return node.parent != null && node.parent.parent == null;
-        }
-
-        @Override
-        public void splay(Node node) {
+        public boolean splayIfApplicable(Node node) {
             Node parent = node.parent;
             if (parent == null || parent.parent != null) {
-                return;
+                return false;
             }
 
             node.parent = null;
@@ -223,6 +211,7 @@ public class RangeSum {
             }
 
             updateSumInAncestors(parent);
+            return true;
         }
     }
 
@@ -326,8 +315,7 @@ public class RangeSum {
 
         private void splay(Node node) {
             while (node.parent != null) {
-                Stream.of(STRATEGIES).filter(strategy -> strategy.isApplicable(node)).findFirst()
-                        .ifPresent(strategy -> strategy.splay(node));
+                for (int index = 0; index < STRATEGIES.length && !STRATEGIES[index].splayIfApplicable(node); index++);
             }
             root = node;
         }
