@@ -259,6 +259,7 @@ public class RangeSum {
             if (node == null || node.key != calculateKey(factor)) {
                 return;
             }
+
             Node next = next(node);
             if (next != null) {
                 splay(next);
@@ -270,14 +271,12 @@ public class RangeSum {
             if (rightChild != null) {
                 rightChild.leftChild = leftChild;
                 rightChild.parent = null;
-                root = rightChild;
             }
             if (leftChild != null) {
                 leftChild.parent = rightChild;
-                if (rightChild == null) {
-                    root = leftChild;
-                }
             }
+
+            root = rightChild != null ? rightChild : leftChild;
         }
 
         void insert(long factor) {
