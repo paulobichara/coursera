@@ -33,14 +33,14 @@ public class RangeSum {
         }
     }
 
-    private static class Node {
+    static class Node {
 
-        private long key;
-        private long sum;
+        long key;
+        long sum;
 
-        private Node parent;
-        private Node leftChild;
-        private Node rightChild;
+        Node parent;
+        Node leftChild;
+        Node rightChild;
 
         Node(long key) {
             this.key = key;
@@ -226,7 +226,7 @@ public class RangeSum {
         }
     }
 
-    private static class SplayTree {
+    static class SplayTree {
         static final SplayStrategy[] STRATEGIES = new SplayStrategy[]{new ZigStrategy(), new ZigZagStrategy(), new ZigZigStrategy()};
 
         static final long PRIME =  1_000_000_001;
@@ -235,6 +235,10 @@ public class RangeSum {
         long lastSumValue = 0;
 
         Node find(long factor) {
+            return find(factor, true);
+        }
+
+        private Node find(long factor, boolean mustSplay) {
             long key = calculateKey(factor);
             Node current = root;
             Node parent = null;
@@ -248,14 +252,14 @@ public class RangeSum {
             }
 
             Node node = current == null ? parent : current;
-            if (node != null) {
+            if (mustSplay && node != null) {
                 splay(node);
             }
             return node;
         }
 
         void delete(long factor) {
-            Node node = find(factor);
+            Node node = find(factor, true);
             if (node == null || node.key != calculateKey(factor)) {
                 return;
             }
@@ -285,7 +289,7 @@ public class RangeSum {
             if (root == null) {
                 root = new Node(key);
             } else {
-                Node found = find(factor);
+                Node found = find(factor, false);
                 if (found.key != key) {
                     Node node = new Node(key);
                     node.parent = found;
@@ -294,7 +298,7 @@ public class RangeSum {
                     } else {
                         found.rightChild = node;
                     }
-                    find(factor);
+                    find(factor, true);
                 }
             }
         }
@@ -330,7 +334,7 @@ public class RangeSum {
 
         private SplayTree[] split(long factor, boolean inclusiveInSecond) {
             long key = calculateKey(factor);
-            Node node = find(factor);
+            Node node = find(factor, true);
             if (node != null) {
 
                 if (node.key > key) {
@@ -373,7 +377,7 @@ public class RangeSum {
         }
 
         private void merge(SplayTree other) {
-            Node greatest = find(PRIME - 1 - lastSumValue);
+            Node greatest = find(PRIME - 1 - lastSumValue, true);
             if (greatest == null) {
                 root = other.root;
             } else {
