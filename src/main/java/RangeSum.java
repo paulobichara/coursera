@@ -61,7 +61,6 @@ public class RangeSum {
         }
     }
 
-    //TODO optimize the number of comparisons executed by checking and applying the strategy in the same step
     private interface SplayStrategy {
         boolean splayIfApplicable(Node node);
 
@@ -72,14 +71,6 @@ public class RangeSum {
                 } else {
                     greatGrandparent.rightChild = node;
                 }
-            }
-        }
-
-        default void updateSumInAncestors(Node node) {
-            Node current = node;
-            while (current != null) {
-                current.updateSum();
-                current = current.parent;
             }
         }
     }
@@ -129,7 +120,9 @@ public class RangeSum {
             }
 
             updateGreatGrandparent(node, grandparent, greatGrandparent);
-            updateSumInAncestors(grandparent);
+
+            grandparent.updateSum();
+            parent.updateSum();
             return true;
         }
     }
@@ -182,7 +175,6 @@ public class RangeSum {
 
             parent.updateSum();
             grandparent.updateSum();
-            updateSumInAncestors(node);
             return true;
         }
     }
@@ -210,7 +202,7 @@ public class RangeSum {
                 parent.rightChild = oldLeft;
             }
 
-            updateSumInAncestors(parent);
+            parent.updateSum();
             return true;
         }
     }
@@ -248,7 +240,7 @@ public class RangeSum {
         }
 
         void delete(long factor) {
-            Node node = find(factor, true);
+            Node node = find(factor, false);
             if (node == null || node.key != calculateKey(factor)) {
                 return;
             }
@@ -256,8 +248,9 @@ public class RangeSum {
             Node next = next(node);
             if (next != null) {
                 splay(next);
-                splay(node);
             }
+
+            splay(node);
 
             Node leftChild = node.leftChild;
             Node rightChild = node.rightChild;
@@ -287,7 +280,7 @@ public class RangeSum {
                     } else {
                         found.rightChild = node;
                     }
-                    find(factor, true);
+                    splay(node);
                 }
             }
         }
@@ -317,6 +310,7 @@ public class RangeSum {
             while (node.parent != null) {
                 for (int index = 0; index < STRATEGIES.length && !STRATEGIES[index].splayIfApplicable(node); index++);
             }
+            node.updateSum();
             root = node;
         }
 
@@ -324,7 +318,6 @@ public class RangeSum {
             long key = calculateKey(factor);
             Node node = find(factor, true);
             if (node != null) {
-
                 if (node.key > key) {
                     return cutLeft(node);
                 } else if (node.key < key) {
