@@ -7,6 +7,7 @@ public class RangeSum {
 
     private static final String NOT_FOUND = "Not found";
     private static final String FOUND = "Found";
+    private static final long PRIME =  1_000_000_001;
 
     private static class FastScanner {
         private BufferedReader br;
@@ -211,17 +212,13 @@ public class RangeSum {
     static class SplayTree {
         static final SplayStrategy[] STRATEGIES = new SplayStrategy[]{new ZigStrategy(), new ZigZagStrategy(), new ZigZigStrategy()};
 
-        static final long PRIME =  1_000_000_001;
-
         Node root = null;
-        long lastSumValue = 0;
 
         Node find(long factor) {
             return find(factor, true);
         }
 
-        private Node find(long factor, boolean mustSplay) {
-            long key = calculateKey(factor);
+        private Node find(long key, boolean mustSplay) {
             Node current = root;
             Node parent = null;
             while (current != null && current.key != key) {
@@ -240,9 +237,9 @@ public class RangeSum {
             return node;
         }
 
-        void delete(long factor) {
-            Node node = find(factor, false);
-            if (node == null || node.key != calculateKey(factor)) {
+        void delete(long key) {
+            Node node = find(key, false);
+            if (node == null || node.key != key) {
                 return;
             }
 
@@ -266,13 +263,11 @@ public class RangeSum {
             root = rightChild != null ? rightChild : leftChild;
         }
 
-        void insert(long factor) {
-            long key = calculateKey(factor);
-
+        void insert(long key) {
             if (root == null) {
                 root = new Node(key);
             } else {
-                Node found = find(factor, false);
+                Node found = find(key, false);
                 if (found.key != key) {
                     Node node = new Node(key);
                     if (found.key > key) {
@@ -285,11 +280,11 @@ public class RangeSum {
             }
         }
 
-        long sum(long lowerFactor, long higherFactor) {
-            SplayTree[] splitTreesLower = split(lowerFactor, true);
-            SplayTree[] splitTreesHigher = splitTreesLower[1].split(higherFactor, false);
+        long sum(long lowerBound, long higherBound) {
+            SplayTree[] splitTreesLower = split(lowerBound, true);
+            SplayTree[] splitTreesHigher = splitTreesLower[1].split(higherBound, false);
 
-            lastSumValue = splitTreesHigher[0].root != null ? splitTreesHigher[0].root.sum : 0;
+            long sum = splitTreesHigher[0].root != null ? splitTreesHigher[0].root.sum : 0;
 
             SplayTree higherTree = splitTreesHigher[0];
             higherTree.merge(splitTreesHigher[1]);
@@ -299,11 +294,7 @@ public class RangeSum {
 
             root = resultTree.root;
 
-            return lastSumValue;
-        }
-
-        long calculateKey(long factor) {
-            return (factor + lastSumValue) % PRIME;
+            return sum;
         }
 
         private void splay(Node node) {
@@ -314,9 +305,8 @@ public class RangeSum {
             root = node;
         }
 
-        private SplayTree[] split(long factor, boolean inclusiveInSecond) {
-            long key = calculateKey(factor);
-            Node node = find(factor, true);
+        private SplayTree[] split(long key, boolean inclusiveInSecond) {
+            Node node = find(key, true);
             if (node != null) {
                 if (node.key > key) {
                     return cutLeft(node);
@@ -341,7 +331,6 @@ public class RangeSum {
                 leftChild.parent = null;
             }
             SplayTree first = new SplayTree();
-            first.lastSumValue = lastSumValue;
             first.root = leftChild;
             return new SplayTree[]{ first, this };
         }
@@ -354,7 +343,6 @@ public class RangeSum {
                 rightChild.parent = null;
             }
             SplayTree second = new SplayTree();
-            second.lastSumValue = lastSumValue;
             second.root = rightChild;
             return new SplayTree[]{ this, second };
         }
@@ -363,7 +351,7 @@ public class RangeSum {
             if (root == null) {
                 root = other.root;
             } else {
-                Node greatest = find(PRIME - 1 - lastSumValue, true);
+                Node greatest = find(Long.MAX_VALUE, true);
                 greatest.setRightChild(other.root);
                 greatest.updateSum();
                 other.root = root;
@@ -381,37 +369,41 @@ public class RangeSum {
             } else {
                 // return the right ancestor of the node
                 Node current = node;
-                Node lastChild = null;
                 while (current.parent != null && current.parent.key < current.key) {
-                    lastChild = current;
                     current = current.parent;
                 }
 
-                return lastChild != null && current.key > lastChild.key ? current : null;
+                return current.parent != null && current.parent.key > current.key ? current.parent : null;
             }
         }
+    }
+
+    private static long calculateKey(long factor, long lastSumValue) {
+        return (factor + lastSumValue) % PRIME;
     }
 
     public static void main(String[] args) {
         FastScanner in = new FastScanner();
         int queryCount = in.nextInt();
         SplayTree tree = new SplayTree();
+        long lastSum = 0;
 
         for (int index = 0; index < queryCount; index++) {
             switch (in.next()) {
                 case "+":
-                    tree.insert(in.nextInt());
+                    tree.insert(calculateKey(in.nextInt(), lastSum));
                     break;
                 case "-":
-                    tree.delete(in.nextInt());
+                    tree.delete(calculateKey(in.nextInt(), lastSum));
                     break;
                 case "?":
-                    int factor = in.nextInt();
-                    Node found = tree.find(factor);
-                    System.out.println(found == null || found.key != tree.calculateKey(factor) ? NOT_FOUND : FOUND);
+                    long key = calculateKey(in.nextInt(), lastSum);
+                    Node found = tree.find(key);
+                    System.out.println(found == null || found.key != key ? NOT_FOUND : FOUND);
                     break;
                 case "s":
-                    System.out.println(tree.sum(in.nextInt(), in.nextInt()));
+                    lastSum = tree.sum(calculateKey(in.nextInt(), lastSum), calculateKey(in.nextInt(), lastSum));
+                    System.out.println(lastSum);
                     break;
 
             }
