@@ -46,6 +46,20 @@ public class RangeSum {
             this.sum = key;
         }
 
+        void setLeftChild(Node node) {
+            leftChild = node;
+            if (node != null) {
+                node.parent = this;
+            }
+        }
+
+        void setRightChild(Node node) {
+            rightChild = node;
+            if (node != null) {
+                node.parent = this;
+            }
+        }
+
         void updateSum() {
             long sumLeft = leftChild == null ? 0 : leftChild.sum;
             long sumRight = rightChild == null ? 0 : rightChild.sum;
@@ -67,10 +81,12 @@ public class RangeSum {
         default void updateGreatGrandparent(Node node, Node grandparent, Node greatGrandparent) {
             if (greatGrandparent != null) {
                 if (grandparent.equals(greatGrandparent.leftChild)) {
-                    greatGrandparent.leftChild = node;
+                    greatGrandparent.setLeftChild(node);
                 } else {
-                    greatGrandparent.rightChild = node;
+                    greatGrandparent.setRightChild(node);
                 }
+            } else {
+                node.parent = null;
             }
         }
     }
@@ -98,23 +114,17 @@ public class RangeSum {
             if (isLeftCase(node)) {
                 Node oldRight = node.rightChild;
                 Node oldParentRight = parent.rightChild;
-                node.parent = grandparent.parent;
-                node.rightChild = parent;
-                parent.parent = node;
-                parent.leftChild = oldRight;
-                parent.rightChild = grandparent;
-                grandparent.leftChild = oldParentRight;
-                grandparent.parent = parent;
+                node.setRightChild(parent);
+                parent.setLeftChild(oldRight);
+                parent.setRightChild(grandparent);
+                grandparent.setLeftChild(oldParentRight);
             } else if (isRightCase(node)) {
                 Node oldLeft = node.leftChild;
                 Node oldParentLeft = parent.leftChild;
-                node.parent = grandparent.parent;
-                node.leftChild = parent;
-                parent.parent = node;
-                parent.rightChild = oldLeft;
-                parent.leftChild = grandparent;
-                grandparent.rightChild = oldParentLeft;
-                grandparent.parent = parent;
+                node.setLeftChild(parent);
+                parent.setRightChild(oldLeft);
+                parent.setLeftChild(grandparent);
+                grandparent.setRightChild(oldParentLeft);
             } else {
                 return false;
             }
@@ -147,26 +157,19 @@ public class RangeSum {
 
             Node greatGrandparent = grandparent.parent;
 
+            Node oldRight = node.rightChild;
+            Node oldLeft = node.leftChild;
+
             if (isLessThanCase(node)) {
-                Node oldRight = node.rightChild;
-                Node oldLeft = node.leftChild;
-                node.parent = grandparent.parent;
-                node.rightChild = grandparent;
-                node.leftChild = parent;
-                parent.parent = node;
-                parent.rightChild = oldLeft;
-                grandparent.parent = node;
-                grandparent.leftChild = oldRight;
+                node.setRightChild(grandparent);
+                node.setLeftChild(parent);
+                parent.setRightChild(oldLeft);
+                grandparent.setLeftChild(oldRight);
             } else if (isGreaterThanCase(node)) {
-                Node oldRight = node.rightChild;
-                Node oldLeft = node.leftChild;
-                node.parent = grandparent.parent;
-                node.rightChild = parent;
-                node.leftChild = grandparent;
-                parent.parent = node;
-                parent.leftChild = oldRight;
-                grandparent.parent = node;
-                grandparent.rightChild = oldLeft;
+                node.setLeftChild(grandparent);
+                node.setRightChild(parent);
+                parent.setLeftChild(oldRight);
+                grandparent.setRightChild(oldLeft);
             } else {
                 return false;
             }
@@ -192,14 +195,12 @@ public class RangeSum {
 
             if (node.equals(parent.leftChild)) {
                 Node oldRight = node.rightChild;
-                node.rightChild = parent;
-                parent.parent = node;
-                parent.leftChild = oldRight;
+                node.setRightChild(parent);
+                parent.setLeftChild(oldRight);
             } else {
                 Node oldLeft = node.leftChild;
-                node.leftChild = parent;
-                parent.parent = node;
-                parent.rightChild = oldLeft;
+                node.setLeftChild(parent);
+                parent.setRightChild(oldLeft);
             }
 
             parent.updateSum();
@@ -255,11 +256,11 @@ public class RangeSum {
             Node leftChild = node.leftChild;
             Node rightChild = node.rightChild;
             if (rightChild != null) {
-                rightChild.leftChild = leftChild;
+                rightChild.setLeftChild(leftChild);
                 rightChild.parent = null;
-            }
-            if (leftChild != null) {
-                leftChild.parent = rightChild;
+                rightChild.updateSum();
+            } else if (leftChild != null) {
+                leftChild.parent = null;
             }
 
             root = rightChild != null ? rightChild : leftChild;
@@ -274,11 +275,10 @@ public class RangeSum {
                 Node found = find(factor, false);
                 if (found.key != key) {
                     Node node = new Node(key);
-                    node.parent = found;
                     if (found.key > key) {
-                        found.leftChild = node;
+                        found.setLeftChild(node);
                     } else {
-                        found.rightChild = node;
+                        found.setRightChild(node);
                     }
                     splay(node);
                 }
@@ -335,7 +335,7 @@ public class RangeSum {
 
         private SplayTree[] cutLeft(Node node) {
             Node leftChild = node.leftChild;
-            node.leftChild = null;
+            node.setLeftChild(null);
             if (leftChild != null) {
                 leftChild.parent = null;
             }
@@ -347,7 +347,7 @@ public class RangeSum {
 
         private SplayTree[] cutRight(Node node) {
             Node rightChild = node.rightChild;
-            node.rightChild = null;
+            node.setRightChild(null);
             if (rightChild != null) {
                 rightChild.parent = null;
             }
@@ -358,14 +358,11 @@ public class RangeSum {
         }
 
         private void merge(SplayTree other) {
-            Node greatest = find(PRIME - 1 - lastSumValue, true);
-            if (greatest == null) {
+            if (root == null) {
                 root = other.root;
             } else {
-                if (other.root != null) {
-                    greatest.rightChild = other.root;
-                    other.root.parent = greatest;
-                }
+                Node greatest = find(PRIME - 1 - lastSumValue, true);
+                greatest.setRightChild(other.root);
                 other.root = root;
             }
         }
