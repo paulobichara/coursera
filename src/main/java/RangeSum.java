@@ -336,6 +336,7 @@ public class RangeSum {
         private SplayTree[] cutLeft(Node node) {
             Node leftChild = node.leftChild;
             node.setLeftChild(null);
+            node.updateSum();
             if (leftChild != null) {
                 leftChild.parent = null;
             }
@@ -348,6 +349,7 @@ public class RangeSum {
         private SplayTree[] cutRight(Node node) {
             Node rightChild = node.rightChild;
             node.setRightChild(null);
+            node.updateSum();
             if (rightChild != null) {
                 rightChild.parent = null;
             }
@@ -363,6 +365,7 @@ public class RangeSum {
             } else {
                 Node greatest = find(PRIME - 1 - lastSumValue, true);
                 greatest.setRightChild(other.root);
+                greatest.updateSum();
                 other.root = root;
             }
         }
