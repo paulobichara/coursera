@@ -332,7 +332,7 @@ public class RopeProblem {
 
             @Override
             public boolean shouldContinue(int treeSize) {
-                return elementCount < k && elementCount < treeSize;
+                return elementCount < k && elementCount <= treeSize;
             }
 
             @Override
@@ -345,7 +345,7 @@ public class RopeProblem {
         Node findKthNode(int k) {
             KthElementFinder visitor = new KthElementFinder(k);
             traverseInOrder(visitor);
-            if (visitor.elementCount == k && visitor.elementCount < size()) {
+            if (visitor.elementCount == k && visitor.elementCount <= size()) {
                 return visitor.last;
             }
             return null;
