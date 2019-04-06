@@ -2,13 +2,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.StringTokenizer;
+import java.util.stream.Stream;
 
 public class RopeProblem {
-
-
-    private static final String NOT_FOUND = "Not found";
-    private static final String FOUND = "Found";
-    private static final long PRIME =  1_000_000_001;
 
     private static class FastScanner {
         private BufferedReader br;
@@ -36,16 +32,14 @@ public class RopeProblem {
 
     static class Node {
 
-        long key;
-        long sum;
+        int key;
 
         Node parent;
         Node leftChild;
         Node rightChild;
 
-        Node(long key) {
+        Node(int key) {
             this.key = key;
-            this.sum = key;
         }
 
         void setLeftChild(Node node) {
@@ -60,12 +54,6 @@ public class RopeProblem {
             if (node != null) {
                 node.parent = this;
             }
-        }
-
-        void updateSum() {
-            long sumLeft = leftChild == null ? 0 : leftChild.sum;
-            long sumRight = rightChild == null ? 0 : rightChild.sum;
-            sum = sumLeft + sumRight + key;
         }
 
         @Override
@@ -133,8 +121,6 @@ public class RopeProblem {
 
             updateGreatGrandparent(node, grandparent, greatGrandparent);
 
-            grandparent.updateSum();
-            parent.updateSum();
             return true;
         }
     }
@@ -178,8 +164,6 @@ public class RopeProblem {
 
             updateGreatGrandparent(node, grandparent, greatGrandparent);
 
-            parent.updateSum();
-            grandparent.updateSum();
             return true;
         }
     }
@@ -205,7 +189,6 @@ public class RopeProblem {
                 parent.setRightChild(oldLeft);
             }
 
-            parent.updateSum();
             return true;
         }
     }
@@ -215,11 +198,7 @@ public class RopeProblem {
 
         Node root = null;
 
-        Node find(long factor) {
-            return find(factor, true);
-        }
-
-        private Node find(long key, boolean mustSplay) {
+        private Node find(int key, boolean mustSplay) {
             Node current = root;
             Node parent = null;
             while (current != null && current.key != key) {
@@ -238,33 +217,7 @@ public class RopeProblem {
             return node;
         }
 
-        void delete(long key) {
-            Node node = find(key, false);
-            if (node == null || node.key != key) {
-                return;
-            }
-
-            Node next = next(node);
-            if (next != null) {
-                splay(next);
-            }
-
-            splay(node);
-
-            Node leftChild = node.leftChild;
-            Node rightChild = node.rightChild;
-            if (rightChild != null) {
-                rightChild.setLeftChild(leftChild);
-                rightChild.parent = null;
-                rightChild.updateSum();
-            } else if (leftChild != null) {
-                leftChild.parent = null;
-            }
-
-            root = rightChild != null ? rightChild : leftChild;
-        }
-
-        void insert(long key) {
+        void insert(int key) {
             if (root == null) {
                 root = new Node(key);
             } else {
@@ -281,32 +234,14 @@ public class RopeProblem {
             }
         }
 
-        long sum(long lowerBound, long higherBound) {
-            SplayTree[] splitTreesLower = split(lowerBound, true);
-            SplayTree[] splitTreesHigher = splitTreesLower[1].split(higherBound, false);
-
-            long sum = splitTreesHigher[0].root != null ? splitTreesHigher[0].root.sum : 0;
-
-            SplayTree higherTree = splitTreesHigher[0];
-            higherTree.merge(splitTreesHigher[1]);
-
-            SplayTree resultTree = splitTreesLower[0];
-            resultTree.merge(higherTree);
-
-            root = resultTree.root;
-
-            return sum;
-        }
-
         private void splay(Node node) {
             while (node.parent != null) {
                 for (int index = 0; index < STRATEGIES.length && !STRATEGIES[index].splayIfApplicable(node); index++);
             }
-            node.updateSum();
             root = node;
         }
 
-        private SplayTree[] split(long key, boolean inclusiveInSecond) {
+        private SplayTree[] split(int key, boolean inclusiveInSecond) {
             Node node = find(key, true);
             if (node != null) {
                 if (node.key > key) {
@@ -327,7 +262,6 @@ public class RopeProblem {
         private SplayTree[] cutLeft(Node node) {
             Node leftChild = node.leftChild;
             node.setLeftChild(null);
-            node.updateSum();
             if (leftChild != null) {
                 leftChild.parent = null;
             }
@@ -339,7 +273,6 @@ public class RopeProblem {
         private SplayTree[] cutRight(Node node) {
             Node rightChild = node.rightChild;
             node.setRightChild(null);
-            node.updateSum();
             if (rightChild != null) {
                 rightChild.parent = null;
             }
@@ -352,63 +285,112 @@ public class RopeProblem {
             if (root == null) {
                 root = other.root;
             } else {
-                Node greatest = find(Long.MAX_VALUE, true);
+                Node greatest = find(Integer.MAX_VALUE, true);
                 greatest.setRightChild(other.root);
-                greatest.updateSum();
                 other.root = root;
-            }
-        }
-
-        private Node next(Node node) {
-            if (node.rightChild != null) {
-                // return the left descendant of the right child
-                Node current = node.rightChild;
-                while (current.leftChild != null) {
-                    current = current.leftChild;
-                }
-                return current;
-            } else {
-                // return the right ancestor of the node
-                Node current = node;
-                while (current.parent != null && current.parent.key < current.key) {
-                    current = current.parent;
-                }
-
-                return current.parent != null && current.parent.key > current.key ? current.parent : null;
             }
         }
     }
 
-    private static long calculateKey(long factor, long lastSumValue) {
-        return (factor + lastSumValue) % PRIME;
+    static class Rope {
+
+        private char[] text;
+
+        Rope(String text) {
+            this.text = text.toCharArray();
+        }
+
+        private void processChange(int lowerIndex, int higherIndex, int k) {
+            SplayTree tree = new SplayTree();
+            for (int index = 0; index < text.length; index++) {
+                tree.insert(index);
+            }
+            SplayTree[] firstSplit = tree.split(lowerIndex, true);
+            SplayTree[] secondSplit = firstSplit[1].split(higherIndex, false);
+
+            SplayTree movingPart = secondSplit[0];
+
+            SplayTree remaining = firstSplit[0];
+            remaining.merge(secondSplit[1]);
+
+            SplayTree result;
+            if (k > 0) {
+                SplayTree[] finalSplit = remaining.split(findKthElement(remaining, k).key, false);
+                result = finalSplit[0];
+                movingPart.merge(finalSplit[1]);
+                result.merge(movingPart);
+            } else {
+                result = movingPart;
+                result.merge(remaining);
+            }
+            text = convertToString(result).toCharArray();
+        }
+
+        Node findKthElement(SplayTree tree, int k) {
+            int elementCount = 0;
+            Node last = null;
+            Node[] previousNodes = new Node[text.length];
+
+            for (Node current = tree.root; elementCount < k && elementCount < text.length;) {
+                if (previousNodes[current.key] == null && current.leftChild != null) {
+                    previousNodes[current.key] = current.leftChild;
+                    current = current.leftChild;
+                } else if ((previousNodes[current.key] == null && current.leftChild == null)
+                    || (previousNodes[current.key].equals(current.leftChild))) {
+                    elementCount++;
+                    last = current;
+                    previousNodes[current.key] = current;
+                } else if (current.equals(previousNodes[current.key]) && current.rightChild != null) {
+                    previousNodes[current.key] = current.rightChild;
+                    current = current.rightChild;
+                } else {
+                    current = current.parent;
+                }
+            }
+
+            if (elementCount == k && elementCount < text.length) {
+                return last;
+            }
+            return null;
+        }
+
+        private String convertToString(SplayTree tree) {
+            StringBuilder builder = new StringBuilder();
+            Node[] previousNodes = new Node[text.length];
+
+            for (Node current = tree.root; builder.length() != text.length;) {
+                if (previousNodes[current.key] == null && current.leftChild != null) {
+                    previousNodes[current.key] = current.leftChild;
+                    current = current.leftChild;
+                } else if ((previousNodes[current.key] == null && current.leftChild == null)
+                    || (previousNodes[current.key].equals(current.leftChild))) {
+                    builder.append(text[current.key]);
+                    previousNodes[current.key] = current;
+                } else if (current.equals(previousNodes[current.key]) && current.rightChild != null) {
+                    previousNodes[current.key] = current.rightChild;
+                    current = current.rightChild;
+                } else {
+                    current = current.parent;
+                }
+            }
+            return builder.toString();
+        }
+
     }
 
     public static void main(String[] args) {
         FastScanner in = new FastScanner();
+
+        String text = in.next();
         int queryCount = in.nextInt();
-        SplayTree tree = new SplayTree();
-        long lastSum = 0;
+
+        Rope rope = new RopeProblem.Rope(text);
 
         for (int index = 0; index < queryCount; index++) {
-            switch (in.next()) {
-                case "+":
-                    tree.insert(calculateKey(in.nextInt(), lastSum));
-                    break;
-                case "-":
-                    tree.delete(calculateKey(in.nextInt(), lastSum));
-                    break;
-                case "?":
-                    long key = calculateKey(in.nextInt(), lastSum);
-                    Node found = tree.find(key);
-                    System.out.println(found == null || found.key != key ? NOT_FOUND : FOUND);
-                    break;
-                case "s":
-                    lastSum = tree.sum(calculateKey(in.nextInt(), lastSum), calculateKey(in.nextInt(), lastSum));
-                    System.out.println(lastSum);
-                    break;
-
-            }
+            rope.processChange(in.nextInt(), in.nextInt(), in.nextInt());
         }
+
+        Stream.of(rope.text).forEach(System.out::println);
     }
 
 
