@@ -477,6 +477,7 @@ public class RopeProblem {
                 result = movingPart;
                 result.merge(remaining);
             }
+            tree = result;
         }
 
         String getText() {
