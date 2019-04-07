@@ -469,12 +469,18 @@ public class RopeProblem {
 
             SplayTree result;
             if (k > 0) {
-                SplayTree[] finalSplit = remaining.split(remaining.findKthNode(k).key, false);
+                if (lowerIndex == 0) {
+                    remaining.updateNodeKeys(0);
+                }
+                SplayTree[] finalSplit = remaining.split(k - 1, false);
                 result = finalSplit[0];
                 movingPart.merge(finalSplit[1]);
                 result.merge(movingPart);
             } else {
                 result = movingPart;
+                if (lowerIndex > 0) {
+                    result.updateNodeKeys(0);
+                }
                 result.merge(remaining);
             }
             tree = result;
