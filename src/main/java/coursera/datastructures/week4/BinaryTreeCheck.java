@@ -1,3 +1,5 @@
+package coursera.datastructures.week4;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -5,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
-public class BinaryTreeCheckHard {
+public class BinaryTreeCheck {
 
     private static class FastScanner {
         private BufferedReader br;
@@ -69,13 +71,13 @@ public class BinaryTreeCheckHard {
             this.leaves = leaves;
         }
 
-        Node find(int index, long key) throws InvalidBSTException {
+        Node find(long key) throws InvalidBSTException {
             Node current = getRoot();
-            while (current != null && current.index != index) {
+            while (current != null && current.key != key) {
                 if (!isNodeConsistent(current)) {
                     throw new InvalidBSTException();
                 }
-                if (key >= current.key) {
+                if (key > current.key) {
                     current = current.rightChild;
                 } else {
                     current = current.leftChild;
@@ -86,13 +88,13 @@ public class BinaryTreeCheckHard {
 
         boolean isNodeConsistent(Node node) {
             return (node.leftChild == null || node.leftChild.key < node.key)
-                    && (node.rightChild == null || node.rightChild.key >= node.key);
+                    && (node.rightChild == null || node.rightChild.key > node.key);
         }
 
         boolean isBinarySearchTree() {
             for (Node leaf : leaves) {
                 try {
-                    if (find(leaf.index, leaf.key) == null) {
+                    if (find(leaf.key) == null) {
                         return false;
                     }
                 } catch (InvalidBSTException e) {

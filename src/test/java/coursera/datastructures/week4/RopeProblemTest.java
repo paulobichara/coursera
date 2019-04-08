@@ -1,3 +1,5 @@
+package coursera.datastructures.week4;
+
 import java.util.Random;
 import org.junit.Assert;
 import org.junit.Test;
