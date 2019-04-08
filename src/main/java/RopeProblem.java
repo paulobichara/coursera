@@ -214,23 +214,25 @@ public class RopeProblem {
 
         Node root = null;
 
-        private Node find(int key, boolean mustSplay) {
+        private Node find(int orderNumber, boolean mustSplay) {
+            int currentNumber = orderNumber;
             Node current = root;
-            Node parent = null;
-            while (current != null && current.key != key) {
-                parent = current;
-                if (key > current.key) {
+            while (current != null) {
+                int leftSize = current.leftChild == null ? 0 : current.leftChild.size;
+                if (currentNumber == leftSize + 1) {
+                    break;
+                } else if (currentNumber > leftSize + 1) {
                     current = current.rightChild;
+                    currentNumber = currentNumber - leftSize - 1;
                 } else {
                     current = current.leftChild;
                 }
-            }
 
-            Node node = current == null ? parent : current;
-            if (mustSplay && node != null) {
-                splay(node);
             }
-            return node;
+            if (mustSplay && current != null) {
+                splay(current);
+            }
+            return current;
         }
 
         void insert(int key, char character) {
@@ -254,112 +256,16 @@ public class RopeProblem {
             return root == null ? 0 : root.size;
         }
 
-        private interface InOrderProcessor {
-            boolean shouldContinue(int treeSize);
-            void processCurrentNode(Node current);
-        }
-
-        private static class TreeToTextConverter implements InOrderProcessor {
-            StringBuilder builder;
-
-            TreeToTextConverter() {
-                builder = new StringBuilder();
-            }
-
-            @Override
-            public boolean shouldContinue(int treeSize) {
-                return builder.length() != treeSize;
-            }
-
-            @Override
-            public void processCurrentNode(Node current) {
-                builder.append(current.character);
-            }
-        }
-
         String convertToString() {
-            TreeToTextConverter converter = new TreeToTextConverter();
-            traverseInOrder(converter);
-            return converter.builder.toString();
-        }
-
-        private static class NodeKeyUpdater implements InOrderProcessor {
-            int elementCount;
-            int startIndex;
-            int[] newKeys;
-            Node[] inOrderNodes;
-
-            NodeKeyUpdater(int startIndex, int treeSize) {
-                this.startIndex = startIndex;
-                this.elementCount = 0;
-                newKeys = new int[treeSize];
-                inOrderNodes = new Node[treeSize];
-            }
-
-            @Override
-            public boolean shouldContinue(int treeSize) {
-                return elementCount < treeSize;
-            }
-
-            @Override
-            public void processCurrentNode(Node current) {
-                newKeys[elementCount] = elementCount + startIndex;
-                inOrderNodes[elementCount] = current;
-                elementCount++;
-            }
-
-            void updateNodesIndexes() {
-                for (int index = 0; index < inOrderNodes.length; index++) {
-                    inOrderNodes[index].key = newKeys[index];
-                }
-            }
-        }
-
-        private void updateNodeKeys(int startIndex) {
-            NodeKeyUpdater updater = new NodeKeyUpdater(startIndex, size());
-            traverseInOrder(updater);
-            updater.updateNodesIndexes();
-        }
-
-        private static class KthElementFinder implements InOrderProcessor {
-            int elementCount;
-            Node last;
-            int k;
-
-            KthElementFinder(int k) {
-                this.k = k;
-            }
-
-            @Override
-            public boolean shouldContinue(int treeSize) {
-                return elementCount < k && elementCount <= treeSize;
-            }
-
-            @Override
-            public void processCurrentNode(Node current) {
-                elementCount++;
-                last = current;
-            }
-        }
-
-        Node findKthNode(int k) {
-            KthElementFinder visitor = new KthElementFinder(k);
-            traverseInOrder(visitor);
-            if (visitor.elementCount == k && visitor.elementCount <= size()) {
-                return visitor.last;
-            }
-            return null;
-        }
-
-        private void traverseInOrder(InOrderProcessor visitor) {
             Map<Integer,Node> previousNodes = new HashMap<>();
+            StringBuilder builder =  new StringBuilder();
 
-            for (Node current = root; current != null && visitor.shouldContinue(size());) {
+            for (Node current = root; current != null && builder.length() != size();) {
                 if (shouldProcessLeftChild(current, previousNodes.get(current.key))) {
                     previousNodes.put(current.key, current.leftChild);
                     current = current.leftChild;
                 } else if (shouldProcessCurrent(current, previousNodes.get(current.key))) {
-                    visitor.processCurrentNode(current);
+                    builder.append(current.character);
                     previousNodes.put(current.key, current);
                 } else if (shouldProcessRightChild(current, previousNodes.get(current.key))) {
                     previousNodes.put(current.key, current.rightChild);
@@ -368,6 +274,7 @@ public class RopeProblem {
                     current = current.parent;
                 }
             }
+            return builder.toString();
         }
 
         private boolean shouldProcessLeftChild(Node current, Node previous) {
@@ -391,19 +298,13 @@ public class RopeProblem {
             root = node;
         }
 
-        SplayTree[] split(int key, boolean inclusiveInSecond) {
-            Node node = find(key, true);
+        SplayTree[] split(int orderNumber, boolean inclusiveInSecond) {
+            Node node = find(orderNumber, true);
             if (node != null) {
-                if (node.key > key) {
+                if (inclusiveInSecond) {
                     return cutLeft(node);
-                } else if (node.key < key) {
-                    return cutRight(node);
                 } else {
-                    if (inclusiveInSecond) {
-                        return cutLeft(node);
-                    } else {
-                        return cutRight(node);
-                    }
+                    return cutRight(node);
                 }
             }
             return new SplayTree[] {new SplayTree(), new SplayTree()};
@@ -436,10 +337,8 @@ public class RopeProblem {
         void merge(SplayTree other) {
             if (root == null) {
                 root = other.root;
-                updateNodeKeys(0);
             } else {
-                Node greatest = find(Integer.MAX_VALUE, true);
-                other.updateNodeKeys(greatest.key + 1);
+                Node greatest = find(size(), true);
                 greatest.setRightChild(other.root);
                 greatest.updateSize();
                 other.root = root;
@@ -459,8 +358,8 @@ public class RopeProblem {
         }
 
         void processChange(int lowerIndex, int higherIndex, int k) {
-            SplayTree[] firstSplit = tree.split(lowerIndex, true);
-            SplayTree[] secondSplit = firstSplit[1].split(higherIndex, false);
+            SplayTree[] firstSplit = tree.split(lowerIndex + 1, true);
+            SplayTree[] secondSplit = firstSplit[1].split(higherIndex + 1 - firstSplit[0].size(), false);
 
             SplayTree movingPart = secondSplit[0];
 
@@ -469,18 +368,12 @@ public class RopeProblem {
 
             SplayTree result;
             if (k > 0) {
-                if (lowerIndex == 0) {
-                    remaining.updateNodeKeys(0);
-                }
-                SplayTree[] finalSplit = remaining.split(k - 1, false);
+                SplayTree[] finalSplit = remaining.split(k, false);
                 result = finalSplit[0];
                 movingPart.merge(finalSplit[1]);
                 result.merge(movingPart);
             } else {
                 result = movingPart;
-                if (lowerIndex > 0) {
-                    result.updateNodeKeys(0);
-                }
                 result.merge(remaining);
             }
             tree = result;
