@@ -1,14 +1,13 @@
+package coursera.graphs.week1;
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Scanner;
-import java.util.stream.Stream;
 
-public class ConnectedComponents {
+public class MazeExitProblem {
 
     private static class Node {
         List<Node> neighbours;
-        Integer componentId;
         int value;
         boolean visited;
 
@@ -31,15 +30,20 @@ public class ConnectedComponents {
             return this.value == ((Node)obj).value;
         }
 
-        void explore(int componentId) {
-            visited = true;
+        boolean canReach(Node other) {
+            if (this.equals(other)) {
+                return true;
+            }
+
             for (Node neighbour : neighbours) {
                 if (!neighbour.visited) {
                     neighbour.visited = true;
-                    neighbour.componentId = componentId;
-                    neighbour.explore(componentId);
+                    if (neighbour.canReach(other)) {
+                        return true;
+                    }
                 }
             }
+            return false;
         }
     }
 
@@ -59,21 +63,6 @@ public class ConnectedComponents {
             }
             return nodes[index];
         }
-
-        int getConnectedComponentsQty() {
-            Node node;
-            int componentId = 0;
-            while ((node = getNextUnvisitedNode()) != null) {
-                componentId++;
-                node.explore(componentId);
-            }
-            return componentId;
-        }
-
-        private Node getNextUnvisitedNode() {
-            Optional<Node> optional = Stream.of(nodes).filter(node -> !node.visited).findFirst();
-            return optional.isPresent() ? optional.get() : null;
-        }
     }
 
     public static void main(String[] args) {
@@ -87,8 +76,10 @@ public class ConnectedComponents {
             graph.getNode(firstIndex).addNeighbour(graph.getNode(secondIndex));
             graph.getNode(secondIndex).addNeighbour(graph.getNode(firstIndex));
         }
+        int fromIndex = scanner.nextInt() - 1;
+        int toIndex = scanner.nextInt() - 1;
 
-        System.out.println(graph.getConnectedComponentsQty());
+        System.out.println(graph.getNode(fromIndex).canReach(graph.getNode(toIndex)) ? "1" : 0);
     }
 
 }
