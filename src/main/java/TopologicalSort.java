@@ -48,6 +48,7 @@ public class TopologicalSort {
             Clock clock = new Clock();
             Node current = getNextUnvisitedSource();
             Integer[] previousNodeIds = new Integer[nodes.length];
+            int[] nextDestIds = new int[nodes.length];
             Stack<Integer> inOrder = new Stack<>();
 
             while (current != null) {
@@ -55,15 +56,22 @@ public class TopologicalSort {
                     current.preOrder = clock.ticks;
                     clock.ticks++;
                 }
-                Node next = current.destinations.stream().filter(node -> node.preOrder == null).findFirst().orElse(null);
-                if (next == null) {
-                    current.postOrder = clock.ticks;
-                    clock.ticks++;
-                    inOrder.push(current.id + 1);
-                    current = previousNodeIds[current.id] == null ? getNextUnvisitedSource() : nodes[previousNodeIds[current.id]];
-                } else {
+
+                while (nextDestIds[current.id] < current.destinations.size()
+                        && current.destinations.get(nextDestIds[current.id]).preOrder != null) {
+                    nextDestIds[current.id]++;
+                }
+
+                if (nextDestIds[current.id] < current.destinations.size()) {
+                    Node next = current.destinations.get(nextDestIds[current.id]);
+                    nextDestIds[current.id]++;
                     previousNodeIds[next.id] = current.id;
                     current = next;
+                } else {
+                    current.postOrder = clock.ticks;
+                    clock.ticks++;
+                    inOrder.add(current.id + 1);
+                    current = previousNodeIds[current.id] == null ? getNextUnvisitedSource() : nodes[previousNodeIds[current.id]];
                 }
             }
             return inOrder;
