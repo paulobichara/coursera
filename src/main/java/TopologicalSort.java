@@ -1,11 +1,8 @@
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Scanner;
-import java.util.stream.Stream;
 
-public class TopologicalOrdering {
+public class TopologicalSort {
     private static class Clock {
         int ticks;
     }
@@ -34,16 +31,10 @@ public class TopologicalOrdering {
         }
     }
 
-    private static class ReversePostOrder implements Comparator<Node> {
-        @Override
-        public int compare(Node o1, Node o2) {
-            return Integer.compare(o2.postOrder, o1.postOrder);
-        }
-    }
-
-    private static class DirectedGraph {
+    static class DirectedGraph {
 
         Node[] nodes;
+        int lastVisitedIndex;
 
         DirectedGraph(int qtyNodes) {
             nodes  = new Node[qtyNodes];
@@ -52,32 +43,41 @@ public class TopologicalOrdering {
             }
         }
 
-        void orderTopologically() {
+        List<Integer> getInReverseOrder() {
             Clock clock = new Clock();
-            Node current = getNextUnvisitedNode();
+            Node current = getNextUnvisitedSource();
             Integer[] previousNodeIds = new Integer[nodes.length];
+            List<Integer> inOrder = new ArrayList<>(nodes.length);
 
             while (current != null) {
                 if (current.preOrder == null) {
                     current.preOrder = clock.ticks;
                     clock.ticks++;
                 }
-
                 Node next = current.destinations.stream().filter(node -> node.preOrder == null).findFirst().orElse(null);
                 if (next == null) {
                     current.postOrder = clock.ticks;
                     clock.ticks++;
-                    current = previousNodeIds[current.id] == null ? getNextUnvisitedNode() : nodes[previousNodeIds[current.id]];
+                    inOrder.add(current.id + 1);
+                    current = previousNodeIds[current.id] == null ? getNextUnvisitedSource() : nodes[previousNodeIds[current.id]];
                 } else {
                     previousNodeIds[next.id] = current.id;
                     current = next;
                 }
             }
-            Arrays.sort(nodes, new ReversePostOrder());
+            return inOrder;
         }
 
-        private Node getNextUnvisitedNode() {
-            return Stream.of(nodes).filter(node -> node.preOrder == null).findFirst().orElse(null);
+        private Node getNextUnvisitedSource() {
+            Node current;
+            for (int index = lastVisitedIndex; index < nodes.length; index++) {
+                current = getNode(index);
+                if (current.preOrder == null) {
+                    lastVisitedIndex = index + 1;
+                    return current;
+                }
+            }
+            return null;
         }
 
         Node getNode(int index) {
@@ -99,7 +99,9 @@ public class TopologicalOrdering {
             int secondIndex = scanner.nextInt() - 1;
             graph.getNode(firstIndex).addDestination(graph.getNode(secondIndex));
         }
-        graph.orderTopologically();
-        Stream.of(graph.nodes).forEach(node -> System.out.println((node.id + 1) + " "));
+        List<Integer> inOrderReverse = graph.getInReverseOrder();
+        for (int index = inOrderReverse.size() - 1; index >= 0; index--) {
+            System.out.print(inOrderReverse.get(index) + " ");
+        }
     }
 }
