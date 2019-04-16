@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Stack;
 
 public class TopologicalSort {
     private static class Clock {
@@ -43,11 +44,11 @@ public class TopologicalSort {
             }
         }
 
-        List<Integer> getInReverseOrder() {
+        Stack<Integer> getInTopologicalOrder() {
             Clock clock = new Clock();
             Node current = getNextUnvisitedSource();
             Integer[] previousNodeIds = new Integer[nodes.length];
-            List<Integer> inOrder = new ArrayList<>(nodes.length);
+            Stack<Integer> inOrder = new Stack<>();
 
             while (current != null) {
                 if (current.preOrder == null) {
@@ -58,7 +59,7 @@ public class TopologicalSort {
                 if (next == null) {
                     current.postOrder = clock.ticks;
                     clock.ticks++;
-                    inOrder.add(current.id + 1);
+                    inOrder.push(current.id + 1);
                     current = previousNodeIds[current.id] == null ? getNextUnvisitedSource() : nodes[previousNodeIds[current.id]];
                 } else {
                     previousNodeIds[next.id] = current.id;
@@ -99,9 +100,10 @@ public class TopologicalSort {
             int secondIndex = scanner.nextInt() - 1;
             graph.getNode(firstIndex).addDestination(graph.getNode(secondIndex));
         }
-        List<Integer> inOrderReverse = graph.getInReverseOrder();
-        for (int index = inOrderReverse.size() - 1; index >= 0; index--) {
-            System.out.print(inOrderReverse.get(index) + " ");
+
+        Stack<Integer> inOrderStack = graph.getInTopologicalOrder();
+        while (!inOrderStack.isEmpty()) {
+            System.out.print(inOrderStack.pop() + " ");
         }
     }
 }
