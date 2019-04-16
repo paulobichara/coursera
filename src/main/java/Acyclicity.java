@@ -4,15 +4,19 @@ import java.util.Scanner;
 import java.util.stream.Stream;
 
 public class Acyclicity {
+    private static class Clock {
+        int ticks;
+    }
+
+    private static class CyclicGraphException extends RuntimeException {}
+
     private static class Node {
-        List<Node> origins;
         List<Node> destinations;
         int id;
         Integer preOrder;
         Integer postOrder;
 
         Node(int id) {
-            origins = new ArrayList<>();
             destinations = new ArrayList<>();
             this.id = id;
         }
@@ -21,16 +25,30 @@ public class Acyclicity {
             destinations.add(node);
         }
 
-        void addOrigins(Node node) {
-            origins.add(node);
-        }
-
         @Override
         public boolean equals(Object obj) {
             if (!(obj instanceof Node)) {
                 return false;
             }
             return this.id == ((Node)obj).id;
+        }
+
+        void explore(Clock clock) {
+            if (preOrder != null) {
+                throw new CyclicGraphException();
+            }
+
+            preOrder = clock.ticks;
+            clock.ticks++;
+            for (Node neighbour : destinations) {
+                if (neighbour.preOrder == null) {
+                    neighbour.explore(clock);
+                } else if (neighbour.postOrder == null) {
+                    throw new CyclicGraphException();
+                }
+            }
+            postOrder = clock.ticks;
+            clock.ticks++;
         }
     }
 
@@ -45,41 +63,14 @@ public class Acyclicity {
             }
         }
 
-        void remove(Node node) {
-            node.origins.forEach(origin -> origin.destinations.remove(node));
-            node.destinations.forEach(destination -> destination.origins.remove(node));
-            nodes[node.id] = null;
-        }
-
         boolean hasCycles() {
-            int clock = 0;
-            Node[] previousNodes = new Node[nodes.length];
-            Node last = null;
-            for (Node current = getNextUnvisitedNode(); current != null;) {
-                if (current.preOrder == null) {
-                    current.preOrder = clock;
-                    clock++;
-                } else if (last != null && last.postOrder == null) {
-                    return true;
+            Clock clock = new Clock();
+            try {
+                for (Node current = getNextUnvisitedNode(); current != null; current = getNextUnvisitedNode()) {
+                    current.explore(clock);
                 }
-
-                last = current;
-                if (current.destinations.size() == 0) {
-                    current.postOrder = clock;
-                    clock++;
-                    Node sink = current;
-                    current = previousNodes[current.id];
-                    remove(sink);
-                } else {
-                    Node next = current.destinations.stream().filter(node -> node.preOrder == null).findFirst().orElse(null);
-                    if (next != null) {
-                        previousNodes[next.id] = current;
-                        current = next;
-                    } else {
-                        return true;
-                    }
-                }
-
+            } catch (CyclicGraphException e) {
+                return true;
             }
             return false;
         }
@@ -106,7 +97,6 @@ public class Acyclicity {
             int firstIndex = scanner.nextInt() - 1;
             int secondIndex = scanner.nextInt() - 1;
             graph.getNode(firstIndex).addDestination(graph.getNode(secondIndex));
-            graph.getNode(secondIndex).addOrigins(graph.getNode(firstIndex));
         }
 
         System.out.println(graph.hasCycles() ? "1" : "0");
