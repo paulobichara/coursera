@@ -29,27 +29,9 @@ public class TopologicalSort {
             }
             return this.id == ((Node)obj).id;
         }
-    }
 
-    static class DirectedGraph {
-
-        Clock clock;
-        Node[] nodes;
-
-        Stack<Integer> inOrder;
-        int lastVisitedIndex;
-
-        DirectedGraph(int qtyNodes) {
-            clock = new Clock();
-            nodes  = new Node[qtyNodes];
-            inOrder = new Stack<>();
-            for (int index = 0; index < qtyNodes; index++) {
-                nodes[index] = new Node(index);
-            }
-        }
-
-        Stack<Integer> getInTopologicalOrder() {
-            Node current = getNextUnvisitedSource();
+        void explore(Clock clock, Stack<Integer> inOrder) {
+            Node current = this;
             Stack<Node> previousNodes = new Stack<>();
 
             while (current != null) {
@@ -70,9 +52,36 @@ public class TopologicalSort {
                     current.postOrder = clock.ticks;
                     clock.ticks++;
                     inOrder.push((current.id + 1));
-                    current = previousNodes.isEmpty() ? getNextUnvisitedSource() : previousNodes.pop();
+                    current = previousNodes.isEmpty() ? null : previousNodes.pop();
                 }
             }
+        }
+    }
+
+    static class DirectedGraph {
+
+        Clock clock;
+        Node[] nodes;
+
+        Stack<Integer> inOrder;
+        int lastVisitedIndex;
+
+        DirectedGraph(int qtyNodes) {
+            clock = new Clock();
+            nodes  = new Node[qtyNodes];
+            inOrder = new Stack<>();
+            for (int index = 0; index < qtyNodes; index++) {
+                nodes[index] = new Node(index);
+            }
+        }
+
+        Stack<Integer> getInTopologicalOrder() {
+            Stack<Integer> inOrder = new Stack<>();
+
+            for (Node current = getNextUnvisitedSource(); current != null; current = getNextUnvisitedSource()) {
+                current.explore(clock, inOrder);
+            }
+
             return inOrder;
         }
 
