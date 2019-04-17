@@ -1,5 +1,3 @@
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
 import java.util.Stack;
 
@@ -9,18 +7,19 @@ public class TopologicalSort {
     }
 
     private static class Node {
-        List<Node> destinations;
+        Stack<Node> unvisited;
+
         int id;
         Integer preOrder;
         Integer postOrder;
 
         Node(int id) {
-            destinations = new ArrayList<>();
+            unvisited = new Stack<>();
             this.id = id;
         }
 
         void addDestination(Node node) {
-            destinations.add(node);
+            unvisited.push(node);
         }
 
         @Override
@@ -51,8 +50,7 @@ public class TopologicalSort {
 
         Stack<Integer> getInTopologicalOrder() {
             Node current = getNextUnvisitedSource();
-            Integer[] previousNodeIds = new Integer[nodes.length];
-            int[] nextDestIds = new int[nodes.length];
+            Stack<Node> previousNodes = new Stack<>();
 
             while (current != null) {
                 if (current.preOrder == null) {
@@ -60,21 +58,19 @@ public class TopologicalSort {
                     clock.ticks++;
                 }
 
-                while (nextDestIds[current.id] < current.destinations.size()
-                        && current.destinations.get(nextDestIds[current.id]).preOrder != null) {
-                    nextDestIds[current.id]++;
+                Node next = current.unvisited.isEmpty() ? null : current.unvisited.pop();
+                while (!current.unvisited.isEmpty() && next.preOrder != null) {
+                    next = current.unvisited.pop();
                 }
 
-                if (nextDestIds[current.id] < current.destinations.size()) {
-                    Node next = current.destinations.get(nextDestIds[current.id]);
-                    nextDestIds[current.id]++;
-                    previousNodeIds[next.id] = current.id;
+                if (next != null && next.preOrder == null) {
+                    previousNodes.push(current);
                     current = next;
                 } else {
                     current.postOrder = clock.ticks;
                     clock.ticks++;
-                    inOrder.add(current.id + 1);
-                    current = previousNodeIds[current.id] == null ? getNextUnvisitedSource() : nodes[previousNodeIds[current.id]];
+                    inOrder.push((current.id + 1));
+                    current = previousNodes.isEmpty() ? getNextUnvisitedSource() : previousNodes.pop();
                 }
             }
             return inOrder;
