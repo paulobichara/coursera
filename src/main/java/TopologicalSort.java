@@ -34,10 +34,12 @@ public class TopologicalSort {
 
     static class DirectedGraph {
 
+        Clock clock;
         Node[] nodes;
         int lastVisitedIndex;
 
         DirectedGraph(int qtyNodes) {
+            clock = new Clock();
             nodes  = new Node[qtyNodes];
             for (int index = 0; index < qtyNodes; index++) {
                 nodes[index] = new Node(index);
@@ -45,7 +47,6 @@ public class TopologicalSort {
         }
 
         Stack<Integer> getInTopologicalOrder() {
-            Clock clock = new Clock();
             Node current = getNextUnvisitedSource();
             Integer[] previousNodeIds = new Integer[nodes.length];
             int[] nextDestIds = new int[nodes.length];
