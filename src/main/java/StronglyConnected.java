@@ -1,26 +1,28 @@
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
 import java.util.Stack;
 
 public class StronglyConnected {
+
     private static class Clock {
         int ticks;
     }
 
     private static class Node {
-        List<Node> destinations;
+        Clock clock;
+        Stack<Node> unvisited;
+
         int id;
         Integer preOrder;
         Integer postOrder;
 
-        Node(int id) {
-            destinations = new ArrayList<>();
+        Node(int id, Clock clock) {
+            unvisited = new Stack<>();
             this.id = id;
+            this.clock = clock;
         }
 
         void addDestination(Node node) {
-            destinations.add(node);
+            unvisited.push(node);
         }
 
         @Override
@@ -30,26 +32,14 @@ public class StronglyConnected {
             }
             return this.id == ((Node)obj).id;
         }
-    }
 
-    static class DirectedGraph {
-
-        Node[] nodes;
-        int lastVisitedIndex;
-
-        DirectedGraph(int qtyNodes) {
-            nodes  = new Node[qtyNodes];
-            for (int index = 0; index < qtyNodes; index++) {
-                nodes[index] = new Node(index);
-            }
+        void explore() {
+            explore(null);
         }
 
-        Stack<Integer> getInTopologicalOrder() {
-            Clock clock = new Clock();
-            Node current = getNextUnvisitedSource();
-            Integer[] previousNodeIds = new Integer[nodes.length];
-            int[] nextDestIds = new int[nodes.length];
-            Stack<Integer> inOrder = new Stack<>();
+        void explore(Stack<Integer> inOrder) {
+            Node current = this;
+            Stack<Node> previousNodes = new Stack<>();
 
             while (current != null) {
                 if (current.preOrder == null) {
@@ -57,30 +47,61 @@ public class StronglyConnected {
                     clock.ticks++;
                 }
 
-                while (nextDestIds[current.id] < current.destinations.size()
-                    && current.destinations.get(nextDestIds[current.id]).preOrder != null) {
-                    nextDestIds[current.id]++;
+                Node next = current.unvisited.isEmpty() ? null : current.unvisited.pop();
+                while (!current.unvisited.isEmpty() && next.preOrder != null) {
+                    next = current.unvisited.pop();
                 }
 
-                if (nextDestIds[current.id] < current.destinations.size()) {
-                    Node next = current.destinations.get(nextDestIds[current.id]);
-                    nextDestIds[current.id]++;
-                    previousNodeIds[next.id] = current.id;
+                if (next != null && next.preOrder == null) {
+                    previousNodes.push(current);
                     current = next;
                 } else {
                     current.postOrder = clock.ticks;
                     clock.ticks++;
-                    inOrder.add(current.id + 1);
-                    current = previousNodeIds[current.id] == null ? getNextUnvisitedSource() : nodes[previousNodeIds[current.id]];
+                    if (inOrder != null) {
+                        inOrder.push((current.id));
+                    }
+                    current = previousNodes.isEmpty() ? null : previousNodes.pop();
                 }
             }
+        }
+    }
+
+    static class DirectedGraph {
+
+        Clock clock;
+        Node[] nodes;
+
+        Stack<Integer> inOrder;
+        int lastVisitedIndex;
+
+        DirectedGraph(int qtyNodes) {
+            clock = new Clock();
+            nodes  = new Node[qtyNodes];
+            inOrder = new Stack<>();
+            for (int index = 0; index < qtyNodes; index++) {
+                nodes[index] = new Node(index, clock);
+            }
+        }
+
+        void addEdge(int fromIndex, int toIndex) {
+            nodes[fromIndex].addDestination(nodes[toIndex]);
+        }
+
+        Stack<Integer> getInTopologicalOrder() {
+            Stack<Integer> inOrder = new Stack<>();
+
+            for (Node current = getNextUnvisitedSource(); current != null; current = getNextUnvisitedSource()) {
+                current.explore(inOrder);
+            }
+
             return inOrder;
         }
 
         private Node getNextUnvisitedSource() {
             Node current;
             for (int index = lastVisitedIndex; index < nodes.length; index++) {
-                current = getNode(index);
+                current = nodes[index];
                 if (current.preOrder == null) {
                     lastVisitedIndex = index + 1;
                     return current;
@@ -88,30 +109,32 @@ public class StronglyConnected {
             }
             return null;
         }
-
-        Node getNode(int index) {
-            if (nodes[index] == null) {
-                nodes[index] = new Node(index);
-            }
-            return nodes[index];
-        }
-
     }
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        DirectedGraph graph = new DirectedGraph(scanner.nextInt());
+        int nodeQty = scanner.nextInt();
+        DirectedGraph graph = new DirectedGraph(nodeQty);
+        DirectedGraph reverse = new DirectedGraph(nodeQty);
 
         int qtyEdges = scanner.nextInt();
         for (int i = 0; i < qtyEdges; i++) {
             int firstIndex = scanner.nextInt() - 1;
             int secondIndex = scanner.nextInt() - 1;
-            graph.getNode(firstIndex).addDestination(graph.getNode(secondIndex));
+            graph.addEdge(firstIndex, secondIndex);
+            reverse.addEdge(secondIndex, firstIndex);
         }
 
-        Stack<Integer> inOrderStack = graph.getInTopologicalOrder();
+        Stack<Integer> inOrderStack = reverse.getInTopologicalOrder();
+        Node current;
+        int countSCCs = 0;
         while (!inOrderStack.isEmpty()) {
-            System.out.print(inOrderStack.pop() + " ");
+            current = graph.nodes[inOrderStack.pop()];
+            if (current.preOrder == null) {
+                current.explore();
+                countSCCs++;
+            }
         }
+        System.out.println(countSCCs);
     }
 }
