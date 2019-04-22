@@ -1,3 +1,5 @@
+package coursera.graphs.week3;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -5,7 +7,7 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Scanner;
 
-public class Bipartite {
+public class BreadthFirstSearch {
 
     private static class Node {
         List<Node> neighbours;
@@ -46,26 +48,23 @@ public class Bipartite {
             return nodes[index];
         }
 
-        boolean isBipartite() {
+        int minimumEdges(int from, int to) {
             int[] distances = new int[nodes.length];
-
             Arrays.fill(distances, Integer.MAX_VALUE);
-            distances[0] = 0;
+            distances[from] = 0;
 
             Queue<Integer> queue = new LinkedList<>();
-            queue.add(0);
+            queue.add(from);
             while (!queue.isEmpty()) {
                 Node current = nodes[queue.poll()];
                 for (Node neighbour : current.neighbours) {
                     if (distances[neighbour.value] == Integer.MAX_VALUE) {
                         queue.add(neighbour.value);
                         distances[neighbour.value] = distances[current.value] + 1;
-                    } else if (distances[neighbour.value] == distances[current.value]) {
-                        return false;
                     }
                 }
             }
-            return true;
+            return distances[to] == Integer.MAX_VALUE ? -1 : distances[to];
         }
     }
 
@@ -80,8 +79,10 @@ public class Bipartite {
             graph.getNode(firstIndex).addNeighbour(graph.getNode(secondIndex));
             graph.getNode(secondIndex).addNeighbour(graph.getNode(firstIndex));
         }
+        int fromIndex = scanner.nextInt() - 1;
+        int toIndex = scanner.nextInt() - 1;
 
-        System.out.println(graph.isBipartite() ? "1" : "0");
+        System.out.println(graph.minimumEdges(fromIndex, toIndex));
     }
 
 }
