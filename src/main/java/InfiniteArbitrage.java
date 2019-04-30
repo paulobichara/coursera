@@ -43,7 +43,7 @@ public class InfiniteArbitrage {
     static class DirectedGraph {
 
         private static final long NEGATIVE_INFINITY = Long.MIN_VALUE;
-        private static final long POSITIVE_INFINITY = Integer.MAX_VALUE;
+        private static final long POSITIVE_INFINITY = Long.MAX_VALUE;
 
         Node[] nodes;
         Edge[] edges;
@@ -62,7 +62,8 @@ public class InfiniteArbitrage {
 
             for (int iteration = 0; iteration < nodes.length - 1; iteration++) {
                 for (Edge edge : edges) {
-                    if (distances[edge.destination.index] > distances[edge.origin.index] + edge.weight) {
+                    if (distances[edge.origin.index] != POSITIVE_INFINITY
+                            && distances[edge.destination.index] > distances[edge.origin.index] + edge.weight) {
                         distances[edge.destination.index] = distances[edge.origin.index] + edge.weight;
                     }
                 }
@@ -70,7 +71,8 @@ public class InfiniteArbitrage {
 
             Set<Node> relaxed = new HashSet<>();
             for (Edge edge : edges) {
-                if (distances[edge.destination.index] > distances[edge.origin.index] + edge.weight) {
+                if (distances[edge.origin.index] != POSITIVE_INFINITY
+                        && distances[edge.destination.index] > distances[edge.origin.index] + edge.weight) {
                     distances[edge.destination.index] = distances[edge.origin.index] + edge.weight;
                     relaxed.add(edge.destination);
                 }
