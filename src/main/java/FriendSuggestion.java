@@ -20,7 +20,6 @@ public class FriendSuggestion {
 
     private static class Node {
         int index;
-        //TODO optimize this structure later
         Map<Integer, Edge> outgoing;
 
         Node(int index) {
@@ -111,13 +110,14 @@ public class FriendSuggestion {
                 }
             }
 
-            return minDistance == Integer.MAX_VALUE ? -1 : minDistance;
+            return minDistance == Long.MAX_VALUE ? -1 : minDistance;
         }
 
         private void relaxEdges(Node node, PriorityQueue<Node> queue, Map<Integer,Node> processed) {
             long[] distances = ((NodeComparator)queue.comparator()).distances;
             for (Edge edge : node.outgoing.values()) {
-                if (distances[edge.destination.index] > distances[node.index] + edge.weight) {
+                if (distances[edge.destination.index] == Long.MAX_VALUE
+                        || distances[edge.destination.index] > distances[node.index] + edge.weight) {
                     queue.remove(edge.destination);
                     distances[edge.destination.index] = distances[node.index] + edge.weight;
                     queue.add(edge.destination);
@@ -132,8 +132,8 @@ public class FriendSuggestion {
             long[] distancesRev = ((NodeComparator)queueRev.comparator()).distances;
 
             for (int index = 0; index < nodes.length; index++) {
-                distances[index] = Integer.MAX_VALUE;
-                distancesRev[index] = Integer.MAX_VALUE;
+                distances[index] = Long.MAX_VALUE;
+                distancesRev[index] = Long.MAX_VALUE;
             }
 
             distances[fromIndex] = 0;
