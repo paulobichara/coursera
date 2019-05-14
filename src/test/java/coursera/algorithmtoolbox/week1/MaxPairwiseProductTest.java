@@ -1,6 +1,5 @@
 package coursera.algorithmtoolbox.week1;
 
-import lombok.SneakyThrows;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -40,7 +39,6 @@ public class MaxPairwiseProductTest {
         return numbers;
     }
 
-    @SneakyThrows
     private int getRandom(int bound) {
         return RANDOM.nextInt(bound);
     }
