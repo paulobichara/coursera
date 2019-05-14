@@ -1,7 +1,5 @@
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Scanner;
@@ -23,11 +21,11 @@ public class FriendSuggestion {
     private static class Node {
         int index;
         //TODO optimize this structure later
-        List<Edge> outgoing;
+        Map<Integer, Edge> outgoing;
 
         Node(int index) {
             this.index = index;
-            outgoing = new ArrayList<>();
+            outgoing = new HashMap<>();
         }
 
         @Override
@@ -84,7 +82,7 @@ public class FriendSuggestion {
                     Node node = queue.poll();
                     relaxEdges(node, queue, processed);
                     if (processedRev.containsKey(node.index)) {
-                        return shortestPath(queue, queueRev, processed, processedRev);
+                        return shortestPath(queue, queueRev, processed, processedRev, fromIndex, toIndex);
                     }
                 }
 
@@ -92,7 +90,7 @@ public class FriendSuggestion {
                     Node node = queueRev.poll();
                     relaxEdges(node, queueRev, processedRev);
                     if (processed.containsKey(node.index)) {
-                        return shortestPath(queue, queueRev, processed, processedRev);
+                        return shortestPath(queue, queueRev, processed, processedRev, fromIndex, toIndex);
                     }
                 }
             }
@@ -101,11 +99,11 @@ public class FriendSuggestion {
         }
 
         private long shortestPath(PriorityQueue<Node> queue, PriorityQueue<Node> queueRev, Map<Integer,Node> processed,
-                Map<Integer,Node> processedRev) {
+                Map<Integer,Node> processedRev, int fromIndex, int toIndex) {
 
-            long minDistance = Long.MAX_VALUE;
             long[] distances = ((NodeComparator)queue.comparator()).distances;
             long[] distancesRev = ((NodeComparator)queueRev.comparator()).distances;
+            long minDistance = Math.min(distances[toIndex], distancesRev[fromIndex]);
 
             for (Node node : processed.values()) {
                 if (processedRev.containsKey(node.index)) {
@@ -118,7 +116,7 @@ public class FriendSuggestion {
 
         private void relaxEdges(Node node, PriorityQueue<Node> queue, Map<Integer,Node> processed) {
             long[] distances = ((NodeComparator)queue.comparator()).distances;
-            for (Edge edge : node.outgoing) {
+            for (Edge edge : node.outgoing.values()) {
                 if (distances[edge.destination.index] > distances[node.index] + edge.weight) {
                     queue.remove(edge.destination);
                     distances[edge.destination.index] = distances[node.index] + edge.weight;
@@ -159,7 +157,7 @@ public class FriendSuggestion {
         void addEdge(int fromIndex, int toIndex, int weight) {
             Node from = getNode(fromIndex);
             Edge edge = new Edge(from, getNode(toIndex), weight);
-            from.outgoing.add(edge);
+            from.outgoing.put(toIndex, edge);
         }
 
         Node getNode(int index) {
