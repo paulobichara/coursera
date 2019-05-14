@@ -1,3 +1,5 @@
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,6 +38,19 @@ public class FriendSuggestion {
         }
     }
 
+    private static class NodeComparator implements Comparator<Node> {
+        long[] distances;
+
+        NodeComparator(int qtyNodes) {
+            this.distances = new long[qtyNodes];
+        }
+
+        @Override
+        public int compare(Node o1, Node o2) {
+            return Long.compare(distances[o1.index], distances[o2.index]);
+        }
+    }
+
     static class GraphWithReverse extends DirectedGraph {
 
         DirectedGraph reverse;
@@ -49,19 +64,6 @@ public class FriendSuggestion {
         void addEdge(int fromIndex, int toIndex, int weight) {
             super.addEdge(fromIndex, toIndex, weight);
             reverse.addEdge(toIndex, fromIndex, weight);
-        }
-
-        private static class NodeComparator implements Comparator<Node> {
-            long[] distances;
-
-            NodeComparator(int qtyNodes) {
-                this.distances = new long[qtyNodes];
-            }
-
-            @Override
-            public int compare(Node o1, Node o2) {
-                return Long.compare(distances[o1.index], distances[o2.index]);
-            }
         }
 
         long bidirectionalDijkstra(int fromIndex, int toIndex) {
@@ -105,7 +107,8 @@ public class FriendSuggestion {
             long minDistance = Math.min(distances[toIndex], distancesRev[fromIndex]);
 
             for (Node node : processed.values()) {
-                if (processedRev.containsKey(node.index)) {
+                if (processedRev.containsKey(node.index) && distances[node.index] != Long.MAX_VALUE
+                        && distancesRev[node.index] != Long.MAX_VALUE) {
                     minDistance = Math.min(minDistance, distances[node.index] + distancesRev[node.index]);
                 }
             }
@@ -116,8 +119,8 @@ public class FriendSuggestion {
         private void relaxEdges(Node node, PriorityQueue<Node> queue, Map<Integer,Node> processed) {
             long[] distances = ((NodeComparator)queue.comparator()).distances;
             for (Edge edge : node.outgoing.values()) {
-                if (distances[edge.destination.index] == Long.MAX_VALUE
-                        || distances[edge.destination.index] > distances[node.index] + edge.weight) {
+                if (distances[node.index] != Long.MAX_VALUE && (distances[edge.destination.index] == Long.MAX_VALUE
+                        || distances[edge.destination.index] > distances[node.index] + edge.weight)) {
                     queue.remove(edge.destination);
                     distances[edge.destination.index] = distances[node.index] + edge.weight;
                     queue.add(edge.destination);
@@ -158,6 +161,38 @@ public class FriendSuggestion {
             Node from = getNode(fromIndex);
             Edge edge = new Edge(from, getNode(toIndex), weight);
             from.outgoing.put(toIndex, edge);
+        }
+
+        long dijkstra(int fromIndex, int toIndex) {
+            if (fromIndex == toIndex) {
+                return 0;
+            }
+
+            NodeComparator comparator = new NodeComparator(nodes.length);
+            long[] distances = comparator.distances;
+            Arrays.fill(distances, Integer.MAX_VALUE);
+            distances[fromIndex] = 0;
+
+            PriorityQueue<Node> queue = new PriorityQueue<>(comparator);
+            Collections.addAll(queue, nodes);
+
+            while (!queue.isEmpty()) {
+                Node node = queue.poll();
+                for (Edge edge : node.outgoing.values()) {
+                    if (distances[edge.destination.index] > distances[node.index] + edge.weight) {
+                        queue.remove(edge.destination);
+                        distances[edge.destination.index] = distances[node.index] + edge.weight;
+                        comparator.distances = distances;
+                        queue.add(edge.destination);
+
+                        if (edge.destination.index == toIndex) {
+                            return distances[toIndex];
+                        }
+                    }
+                }
+            }
+
+            return -1;
         }
 
         Node getNode(int index) {
