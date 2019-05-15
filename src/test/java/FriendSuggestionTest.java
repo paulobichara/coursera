@@ -83,13 +83,33 @@ public class FriendSuggestionTest {
                     expected.addEdge(fromIndex, toIndex, 1);
                 }
             });
-            for (int index = 0; index < qtyNodes; index++) {
-                for (int index2 = 0; index2 < qtyNodes; index2++) {
-                    Assert.assertEquals("Failed testing nodes " + index + " and " + index2,
-                            expected.dijkstra(index, index2), graph.bidirectionalDijkstra(index, index2));
+            for (int fromIndex = 0; fromIndex < qtyNodes; fromIndex++) {
+                for (int toIndex = 0; toIndex < qtyNodes; toIndex++) {
+                    FriendSuggestion.Path expectedPath = expected.dijkstra(fromIndex, toIndex);
+                    FriendSuggestion.Path result = graph.bidirectionalDijkstra(fromIndex, toIndex);
+                    Assert.assertEquals(getErrorMessage(fromIndex, toIndex, expectedPath, result),
+                            expectedPath == null ? -1 : expectedPath.totalWeight,
+                            result == null ? -1 : result.totalWeight);
                 }
             }
         }
+    }
+
+    private String getErrorMessage(int fromIndex, int toIndex, FriendSuggestion.Path expected,
+            FriendSuggestion.Path result) {
+        String message = "Failed testing nodes ";
+        message = message + (fromIndex + 1) + " and " + (toIndex + 1) + "\n";
+        if (expected != null) {
+            message = message + "EXPECTED weight: " + expected.totalWeight + ", path: " + expected.toString() + "\n";
+        } else {
+            message = message + "EXPECTED no path found" + "\n";
+        }
+        if (result != null) {
+            message = message + "RESULT weight: " + result.totalWeight + ", path: " + result.toString() + "\n";
+        } else {
+            message = message + "RESULT no path found" + "\n";
+        }
+        return message;
     }
 
 }
