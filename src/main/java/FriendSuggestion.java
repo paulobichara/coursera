@@ -141,7 +141,7 @@ public class FriendSuggestion {
                 Map<Integer,Node> processedRev, Node[] previous, Node[] previousRev, int fromIndex, int toIndex) {
             long[] distances = ((NodeComparator)queue.comparator()).distances;
             long[] distancesRev = ((NodeComparator)queueRev.comparator()).distances;
-            long minDistance = Long.MAX_VALUE;
+            long minDistance = Math.min(distances[toIndex], distancesRev[fromIndex]);
             Node best = null;
 
             for (Node node : processed.values()) {
@@ -154,7 +154,19 @@ public class FriendSuggestion {
                 }
             }
 
-            return buildPath(best, previous, previousRev, fromIndex, toIndex, minDistance);
+            if (best == null && minDistance < Long.MAX_VALUE) {
+                if (distances[toIndex] == minDistance) {
+                    return super.buildPath(fromIndex, toIndex, previous, distances);
+                } else {
+                    Path path = super.buildPath(toIndex, fromIndex, previousRev, distancesRev);
+                    Collections.reverse(path.nodeSequence);
+                    return path;
+                }
+            } else if (minDistance < Long.MAX_VALUE) {
+                return buildPath(best, previous, previousRev, fromIndex, toIndex, minDistance);
+            }
+
+            return null;
         }
 
         private Path buildPath(Node best, Node[] previous, Node[] previousRev, int fromIndex, int toIndex, long minDistance) {

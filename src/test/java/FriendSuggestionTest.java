@@ -33,7 +33,7 @@ public class FriendSuggestionTest {
         graph.addEdge(4, 3, 1);
         graph.addEdge(1, 4, 3);
         graph.addEdge(2, 3, 4);
-        assertPath(graph, 0, 4, new int[] { 1, 3, 5 }, new int[] { 1, 3, 2, 5 }, 6L);
+        assertPath(graph, 0, 4, new int[] { 1, 3, 5 }, new int[] { 1, 3, 5 }, 6L);
 
         graph = new FriendSuggestion.GraphWithReverse(3);
         graph.addEdge(0, 1, 7);
