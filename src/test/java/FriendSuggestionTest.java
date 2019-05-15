@@ -12,6 +12,7 @@ public class FriendSuggestionTest {
 
     // Graph with 198 nodes and 2742 edges
     private static final File GRAPH_JAZZ = new File("src/test/resources/graphs/jazz.graph");
+    private static final File GRAPH_METABOLIC = new File("src/test/resources/graphs/celegans_metabolic.graph");
 
     @Test
     public void testSmallSamples() {
@@ -44,8 +45,8 @@ public class FriendSuggestionTest {
 
     @Test
     public void testBigSamples() throws IOException {
-        FriendSuggestion.GraphWithReverse graph = readGraphFromFile(GRAPH_JAZZ);
-        assertPath(graph, 1, 23, new int[] { 2, 19, 24 }, new int[] { 2, 19, 24 },2L);
+        FriendSuggestion.GraphWithReverse graph = readGraphFromFile(GRAPH_METABOLIC);
+        assertPath(graph, 0, 1, new int[] { 1, 227, 186, 2 }, new int[] { 1, 227, 186, 2 },2L);
     }
 
     private void assertPath(FriendSuggestion.GraphWithReverse graph, int fromIndex, int toIndex, int[] sequence,
@@ -68,7 +69,7 @@ public class FriendSuggestionTest {
 
     @Test
     public void jazzTest() throws IOException {
-        testGraphFile(new File("src/test/resources/graphs/jazz.graph"));
+        testGraphFile(GRAPH_JAZZ);
     }
 
     @Test
@@ -78,7 +79,7 @@ public class FriendSuggestionTest {
 
     @Test
     public void metabolicTest() throws IOException {
-        testGraphFile(new File("src/test/resources/graphs/celegans_metabolic.graph"));
+        testGraphFile(GRAPH_METABOLIC);
     }
 
     private void testGraphFile(File file) throws IOException {

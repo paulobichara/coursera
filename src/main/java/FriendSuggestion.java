@@ -117,24 +117,67 @@ public class FriendSuggestion {
             while (!queue.isEmpty() || !queueRev.isEmpty()) {
                 if (!queue.isEmpty()) {
                     Node node = queue.poll();
-                    relaxEdges(node, queue, processed, previous);
-                    if (processedRev.containsKey(node.index)) {
-                        return shortestPath(queue, queueRev, processed, processedRev,
+                    if (relaxEdges(node, queue, processed, previous)) {
+                        if (processedRev.containsKey(node.index)) {
+                            return shortestPath(queue, queueRev, processed, processedRev,
                                 previous, previousRev, fromIndex, toIndex);
+                        }
+                    } else {
+                        return null;
                     }
                 }
 
                 if (!queueRev.isEmpty()) {
                     Node node = queueRev.poll();
-                    relaxEdges(node, queueRev, processedRev, previousRev);
-                    if (processed.containsKey(node.index)) {
-                        return shortestPath(queue, queueRev, processed, processedRev,
-                                previous, previousRev, fromIndex, toIndex);
+                    if (relaxEdges(node, queueRev, processedRev, previousRev)) {
+                        if (processed.containsKey(node.index)) {
+                            return shortestPath(queue, queueRev, processed, processedRev,
+                                    previous, previousRev, fromIndex, toIndex);
+                        }
+                    } else {
+                        return null;
                     }
                 }
             }
 
             return null;
+        }
+
+        private boolean relaxEdges(Node node, PriorityQueue<Node> queue, Map<Integer,Node> processed, Node[] previous) {
+            long[] distances = ((NodeComparator)queue.comparator()).distances;
+            if (distances[node.index] == Long.MAX_VALUE) {
+                return false;
+            }
+
+            for (Edge edge : node.outgoing.values()) {
+                if (distances[edge.destination.index] > distances[node.index] + edge.weight) {
+                    previous[edge.destination.index] = node;
+                    queue.remove(edge.destination);
+                    distances[edge.destination.index] = distances[node.index] + edge.weight;
+                    queue.add(edge.destination);
+                }
+            }
+            processed.put(node.index, node);
+            return true;
+        }
+
+        private void initializeQueues(PriorityQueue<Node> queue, PriorityQueue<Node> queueRev, int fromIndex,
+            int toIndex) {
+            long[] distances = ((NodeComparator)queue.comparator()).distances;
+            long[] distancesRev = ((NodeComparator)queueRev.comparator()).distances;
+
+            for (int index = 0; index < nodes.length; index++) {
+                distances[index] = Long.MAX_VALUE;
+                distancesRev[index] = Long.MAX_VALUE;
+            }
+
+            distances[fromIndex] = 0;
+            distancesRev[toIndex] = 0;
+
+            for (int index = 0; index < nodes.length; index++) {
+                queue.add(getNode(index));
+                queueRev.add(reverse.getNode(index));
+            }
         }
 
         private Path shortestPath(PriorityQueue<Node> queue, PriorityQueue<Node> queueRev, Map<Integer,Node> processed,
@@ -145,8 +188,7 @@ public class FriendSuggestion {
             Node best = null;
 
             for (Node node : processed.values()) {
-                if (processedRev.containsKey(node.index) && distances[node.index] != Long.MAX_VALUE
-                        && distancesRev[node.index] != Long.MAX_VALUE) {
+                if (processedRev.containsKey(node.index)) {
                     if (minDistance > distances[node.index] + distancesRev[node.index]) {
                         best = node;
                         minDistance = distances[node.index] + distancesRev[node.index];
@@ -201,39 +243,6 @@ public class FriendSuggestion {
             }
 
             return result;
-        }
-
-        private void relaxEdges(Node node, PriorityQueue<Node> queue, Map<Integer,Node> processed, Node[] previous) {
-            long[] distances = ((NodeComparator)queue.comparator()).distances;
-            for (Edge edge : node.outgoing.values()) {
-                if (distances[node.index] != Long.MAX_VALUE && (distances[edge.destination.index] == Long.MAX_VALUE
-                        || distances[edge.destination.index] > distances[node.index] + edge.weight)) {
-                    previous[edge.destination.index] = node;
-                    queue.remove(edge.destination);
-                    distances[edge.destination.index] = distances[node.index] + edge.weight;
-                    queue.add(edge.destination);
-                }
-            }
-            processed.put(node.index, node);
-        }
-
-        private void initializeQueues(PriorityQueue<Node> queue, PriorityQueue<Node> queueRev, int fromIndex,
-                int toIndex) {
-            long[] distances = ((NodeComparator)queue.comparator()).distances;
-            long[] distancesRev = ((NodeComparator)queueRev.comparator()).distances;
-
-            for (int index = 0; index < nodes.length; index++) {
-                distances[index] = Long.MAX_VALUE;
-                distancesRev[index] = Long.MAX_VALUE;
-            }
-
-            distances[fromIndex] = 0;
-            distancesRev[toIndex] = 0;
-
-            for (int index = 0; index < nodes.length; index++) {
-                queue.add(getNode(index));
-                queueRev.add(reverse.getNode(index));
-            }
         }
 
     }
