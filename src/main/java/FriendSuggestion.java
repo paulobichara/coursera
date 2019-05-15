@@ -1,8 +1,9 @@
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Scanner;
@@ -140,7 +141,7 @@ public class FriendSuggestion {
                 Map<Integer,Node> processedRev, Node[] previous, Node[] previousRev, int fromIndex, int toIndex) {
             long[] distances = ((NodeComparator)queue.comparator()).distances;
             long[] distancesRev = ((NodeComparator)queueRev.comparator()).distances;
-            long minDistance = Math.min(distances[toIndex], distancesRev[fromIndex]);
+            long minDistance = Long.MAX_VALUE;
             Node best = null;
 
             for (Node node : processed.values()) {
@@ -167,13 +168,14 @@ public class FriendSuggestion {
                 return path;
             }
 
-            LinkedList<Node> partial = new LinkedList<>();
+            List<Node> partial = new ArrayList<>();
             for (Node current = best; current != null; current = previous[current.index]) {
-                partial.push(current);
+                partial.add(current);
             }
 
             Stack<Node> partialRev = new Stack<>();
-            for (Node current = previousRev[best.index]; current != null; current = previous[current.index]) {
+            for (Node current = previousRev[best.index]; current != null && current.index != toIndex;
+                    current = previous[current.index]) {
                 partialRev.push(current);
             }
 
@@ -182,8 +184,8 @@ public class FriendSuggestion {
                 result.pushNode(partialRev.pop());
             }
 
-            while (!partial.isEmpty()) {
-                result.pushNode(partial.poll());
+            for (int index = 0; index < partial.size(); index++) {
+                result.pushNode(partial.get(index));
             }
 
             return result;
@@ -226,8 +228,10 @@ public class FriendSuggestion {
 
     static class DirectedGraph {
         Node[] nodes;
+        int qtyNodes;
 
         DirectedGraph(int qtyNodes) {
+            this.qtyNodes = qtyNodes;
             nodes  = new Node[qtyNodes];
         }
 
