@@ -5,16 +5,25 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Scanner;
+import java.util.Stack;
 
 public class FriendSuggestion {
 
+    static class Path {
+        Stack<Integer> nodeSequence;
+        long totalWeight;
+
+        Path(Stack<Integer> nodeSequence, long totalWeight) {
+            this.nodeSequence = nodeSequence;
+            this.totalWeight = totalWeight;
+        }
+    }
+
     private static class Edge {
-        Node origin;
         Node destination;
         int weight;
 
-        Edge(Node origin, Node destination, int weight) {
-            this.origin = origin;
+        Edge(Node destination, int weight) {
             this.destination = destination;
             this.weight = weight;
         }
@@ -159,17 +168,19 @@ public class FriendSuggestion {
 
         void addEdge(int fromIndex, int toIndex, int weight) {
             Node from = getNode(fromIndex);
-            Edge edge = new Edge(from, getNode(toIndex), weight);
+            Edge edge = new Edge(getNode(toIndex), weight);
             from.outgoing.put(toIndex, edge);
         }
 
-        long dijkstra(int fromIndex, int toIndex) {
-            if (fromIndex == toIndex) {
-                return 0;
-            }
-
+        Path dijkstra(int fromIndex, int toIndex) {
             NodeComparator comparator = new NodeComparator(nodes.length);
             long[] distances = comparator.distances;
+            Node[] previous = new Node[nodes.length];
+
+            if (fromIndex == toIndex) {
+                return buildPath(fromIndex, toIndex, previous, distances);
+            }
+
             Arrays.fill(distances, Integer.MAX_VALUE);
             distances[fromIndex] = 0;
 
@@ -180,19 +191,25 @@ public class FriendSuggestion {
                 Node node = queue.poll();
                 for (Edge edge : node.outgoing.values()) {
                     if (distances[edge.destination.index] > distances[node.index] + edge.weight) {
+                        previous[edge.destination.index] = node;
                         queue.remove(edge.destination);
                         distances[edge.destination.index] = distances[node.index] + edge.weight;
                         comparator.distances = distances;
                         queue.add(edge.destination);
-
-                        if (edge.destination.index == toIndex) {
-                            return distances[toIndex];
-                        }
                     }
                 }
             }
 
-            return -1;
+            return distances[toIndex] == Integer.MAX_VALUE ? null : buildPath(fromIndex, toIndex, previous, distances);
+        }
+
+        private Path buildPath(int fromIndex, int toIndex, Node[] previous, long[] distances) {
+            Stack<Integer> nodeSequence = new Stack<>();
+            for (Node current = getNode(toIndex); !current.equals(getNode(fromIndex)); current = previous[current.index]) {
+                nodeSequence.push(current.index + 1);
+            }
+            nodeSequence.push(fromIndex + 1);
+            return new Path(nodeSequence, distances[toIndex]);
         }
 
         Node getNode(int index) {
