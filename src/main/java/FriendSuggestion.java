@@ -116,7 +116,7 @@ public class FriendSuggestion {
 
             while (!queue.isEmpty() && !queueRev.isEmpty()) {
                 Node node = queue.poll();
-                if (relaxEdges(node, queue, processed, previous)) {
+                if (relaxEdges(node, queue, processed, previous, toIndex)) {
                     if (processedRev.containsKey(node.index)) {
                         return shortestPath(queue, queueRev, processed, processedRev,
                             previous, previousRev, fromIndex, toIndex);
@@ -126,7 +126,7 @@ public class FriendSuggestion {
                 }
 
                 node = queueRev.poll();
-                if (relaxEdges(node, queueRev, processedRev, previousRev)) {
+                if (relaxEdges(node, queueRev, processedRev, previousRev, fromIndex)) {
                     if (processed.containsKey(node.index)) {
                         return shortestPath(queue, queueRev, processed, processedRev,
                                 previous, previousRev, fromIndex, toIndex);
@@ -139,9 +139,10 @@ public class FriendSuggestion {
             return null;
         }
 
-        private boolean relaxEdges(Node node, PriorityQueue<Node> queue, Map<Integer,Node> processed, Node[] previous) {
+        private boolean relaxEdges(Node node, PriorityQueue<Node> queue, Map<Integer,Node> processed,
+                Node[] previous, int toIndex) {
             long[] distances = ((NodeComparator)queue.comparator()).distances;
-            if (node.outgoing.size() == 0) {
+            if (node.outgoing.size() == 0 && node.index != toIndex) {
                 return false;
             }
 
