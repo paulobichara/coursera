@@ -19,6 +19,8 @@ public class FriendSuggestionTest {
     private static final File GRAPH_METABOLIC = new File(UNWEIGHTED_PATH + "celegans_metabolic.graph");
     private static final File GRAPH_SMALLWORLD = new File(UNWEIGHTED_PATH + "smallworld.graph");
     private static final File GRAPH_EMAIL = new File(UNWEIGHTED_PATH + "email.graph");
+    private static final File GRAPH_FOOTBALL = new File(UNWEIGHTED_PATH + "football.graph");
+    private static final File GRAPH_ADJNOUN = new File(UNWEIGHTED_PATH + "adjnoun.graph");
 
     private static final File GRAPH_NEURAL = new File(WEIGHTED_PATH + "celegansneural.graph");
 
@@ -85,8 +87,18 @@ public class FriendSuggestionTest {
     }
 
     @Test
+    public void footballTest() throws IOException {
+        testGraphFile(GRAPH_FOOTBALL, false);
+    }
+
+    @Test
+    public void adjNounTest() throws IOException {
+        testGraphFile(GRAPH_ADJNOUN, false);
+    }
+
+    @Test
     public void smallWorldTest() throws IOException {
-        testGraphFile(new File("src/test/resources/graphs/smallworld.graph"), false);
+        testGraphFile(GRAPH_SMALLWORLD, false);
     }
 
 
