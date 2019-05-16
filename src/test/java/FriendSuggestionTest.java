@@ -4,15 +4,23 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.StringTokenizer;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 import org.junit.Assert;
 import org.junit.Test;
 
 public class FriendSuggestionTest {
 
+    private static final String WEIGHTED_PATH = "src/test/resources/graphs/weighted/";
+    private static final String UNWEIGHTED_PATH = "src/test/resources/graphs/unweighted/";
+
     // Graph with 198 nodes and 2742 edges
-    private static final File GRAPH_JAZZ = new File("src/test/resources/graphs/jazz.graph");
-    private static final File GRAPH_METABOLIC = new File("src/test/resources/graphs/celegans_metabolic.graph");
+    private static final File GRAPH_JAZZ = new File(UNWEIGHTED_PATH + "jazz.graph");
+    private static final File GRAPH_METABOLIC = new File(UNWEIGHTED_PATH + "celegans_metabolic.graph");
+    private static final File GRAPH_SMALLWORLD = new File(UNWEIGHTED_PATH + "smallworld.graph");
+    private static final File GRAPH_EMAIL = new File(UNWEIGHTED_PATH + "email.graph");
+
+    private static final File GRAPH_NEURAL = new File(WEIGHTED_PATH + "celegansneural.graph");
 
     @Test
     public void testSmallSamples() {
@@ -63,21 +71,32 @@ public class FriendSuggestionTest {
 
     @Test
     public void jazzTest() throws IOException {
-        testGraphFile(GRAPH_JAZZ);
-    }
-
-    @Test
-    public void smallWorldTest() throws IOException {
-        testGraphFile(new File("src/test/resources/graphs/smallworld.graph"));
+        testGraphFile(GRAPH_JAZZ, false);
     }
 
     @Test
     public void metabolicTest() throws IOException {
-        testGraphFile(GRAPH_METABOLIC);
+        testGraphFile(GRAPH_METABOLIC, false);
     }
 
-    private void testGraphFile(File file) throws IOException {
-        FriendSuggestion.GraphWithReverse graph = readGraphFromFile(file);
+    @Test
+    public void emailTest() throws IOException {
+        testGraphFile(GRAPH_EMAIL, false);
+    }
+
+    @Test
+    public void smallWorldTest() throws IOException {
+        testGraphFile(new File("src/test/resources/graphs/smallworld.graph"), false);
+    }
+
+
+    @Test
+    public void neuralTest() throws IOException {
+        testGraphFile(GRAPH_NEURAL, true);
+    }
+
+    private void testGraphFile(File file, boolean weighted) throws IOException {
+        FriendSuggestion.GraphWithReverse graph = readGraphFile(file, weighted);
         for (int fromIndex = 0; fromIndex < graph.qtyNodes; fromIndex++) {
             for (int toIndex = 0; toIndex < graph.qtyNodes; toIndex++) {
                 FriendSuggestion.Path expectedPath = graph.dijkstra(fromIndex, toIndex);
@@ -89,20 +108,33 @@ public class FriendSuggestionTest {
         }
     }
 
-    private FriendSuggestion.GraphWithReverse readGraphFromFile(File file) throws IOException {
+    private FriendSuggestion.GraphWithReverse readGraphFile(File file, boolean weighted) throws IOException {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)))) {
             StringTokenizer header = new StringTokenizer(reader.readLine());
             int qtyNodes = Integer.valueOf(header.nextToken());
+            int qtyEdges = Integer.valueOf(header.nextToken());
+            AtomicInteger countEdges = new AtomicInteger(0);
 
             FriendSuggestion.GraphWithReverse graph = new FriendSuggestion.GraphWithReverse(qtyNodes);
+            AtomicInteger fromIndex = new AtomicInteger(0);
             reader.lines().forEach(line -> {
                 StringTokenizer tokenizer = new StringTokenizer(line);
-                int fromIndex = Integer.valueOf(tokenizer.nextToken()) - 1;
                 while (tokenizer.hasMoreTokens()) {
                     int toIndex = Integer.valueOf(tokenizer.nextToken()) - 1;
-                    graph.addEdge(fromIndex, toIndex, 1);
+                    if (weighted) {
+                        int weight = Integer.valueOf(tokenizer.nextToken());
+                        graph.addEdge(fromIndex.intValue(), toIndex, weight);
+                    } else {
+                        graph.addEdge(fromIndex.intValue(), toIndex, 1);
+                    }
+                    countEdges.incrementAndGet();
                 }
+                fromIndex.incrementAndGet();
             });
+
+            if (countEdges.intValue() != qtyEdges && countEdges.intValue() / 2 != qtyEdges) {
+                throw new RuntimeException("Invalid input file");
+            }
 
             return graph;
         }
