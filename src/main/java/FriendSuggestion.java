@@ -188,11 +188,18 @@ public class FriendSuggestion {
             Node best = null;
 
             for (Node node : processed.values()) {
-                if (processedRev.containsKey(node.index)) {
-                    if (minDistance > distances[node.index] + distancesRev[node.index]) {
-                        best = node;
-                        minDistance = distances[node.index] + distancesRev[node.index];
-                    }
+                if (distancesRev[node.index] != Long.MAX_VALUE
+                        && minDistance > distances[node.index] + distancesRev[node.index]) {
+                    best = node;
+                    minDistance = distances[node.index] + distancesRev[node.index];
+                }
+            }
+
+            for (Node node : processedRev.values()) {
+                if (distances[node.index] != Long.MAX_VALUE
+                        && minDistance > distances[node.index] + distancesRev[node.index]) {
+                    best = node;
+                    minDistance = distances[node.index] + distancesRev[node.index];
                 }
             }
 
@@ -229,7 +236,7 @@ public class FriendSuggestion {
 
             Stack<Node> partialRev = new Stack<>();
             for (Node current = previousRev[best.index]; current != null && current.index != toIndex;
-                    current = previous[current.index]) {
+                    current = previousRev[current.index]) {
                 partialRev.push(current);
             }
 

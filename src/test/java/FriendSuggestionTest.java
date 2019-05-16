@@ -43,12 +43,6 @@ public class FriendSuggestionTest {
         assertPath(graph, 2, 1, null, null,-1L);
     }
 
-    @Test
-    public void testBigSamples() throws IOException {
-        FriendSuggestion.GraphWithReverse graph = readGraphFromFile(GRAPH_METABOLIC);
-        assertPath(graph, 0, 1, new int[] { 1, 227, 186, 2 }, new int[] { 1, 227, 186, 2 },2L);
-    }
-
     private void assertPath(FriendSuggestion.GraphWithReverse graph, int fromIndex, int toIndex, int[] sequence,
             int[] sequenceBi, long totalWeight) {
         FriendSuggestion.Path path = graph.dijkstra(fromIndex, toIndex);
