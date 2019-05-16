@@ -114,29 +114,25 @@ public class FriendSuggestion {
             Map<Integer,Node> processedRev = new HashMap<>();
             Node[] previousRev = new Node[nodes.length];
 
-            while (!queue.isEmpty() || !queueRev.isEmpty()) {
-                if (!queue.isEmpty()) {
-                    Node node = queue.poll();
-                    if (relaxEdges(node, queue, processed, previous)) {
-                        if (processedRev.containsKey(node.index)) {
-                            return shortestPath(queue, queueRev, processed, processedRev,
-                                previous, previousRev, fromIndex, toIndex);
-                        }
-                    } else {
-                        return null;
+            while (!queue.isEmpty() && !queueRev.isEmpty()) {
+                Node node = queue.poll();
+                if (relaxEdges(node, queue, processed, previous)) {
+                    if (processedRev.containsKey(node.index)) {
+                        return shortestPath(queue, queueRev, processed, processedRev,
+                            previous, previousRev, fromIndex, toIndex);
                     }
+                } else {
+                    break;
                 }
 
-                if (!queueRev.isEmpty()) {
-                    Node node = queueRev.poll();
-                    if (relaxEdges(node, queueRev, processedRev, previousRev)) {
-                        if (processed.containsKey(node.index)) {
-                            return shortestPath(queue, queueRev, processed, processedRev,
-                                    previous, previousRev, fromIndex, toIndex);
-                        }
-                    } else {
-                        return null;
+                node = queueRev.poll();
+                if (relaxEdges(node, queueRev, processedRev, previousRev)) {
+                    if (processed.containsKey(node.index)) {
+                        return shortestPath(queue, queueRev, processed, processedRev,
+                                previous, previousRev, fromIndex, toIndex);
                     }
+                } else {
+                    break;
                 }
             }
 
@@ -145,7 +141,7 @@ public class FriendSuggestion {
 
         private boolean relaxEdges(Node node, PriorityQueue<Node> queue, Map<Integer,Node> processed, Node[] previous) {
             long[] distances = ((NodeComparator)queue.comparator()).distances;
-            if (distances[node.index] == Long.MAX_VALUE) {
+            if (node.outgoing.size() == 0) {
                 return false;
             }
 
