@@ -116,7 +116,7 @@ public class FriendSuggestion {
 
             while (!queue.isEmpty() && !queueRev.isEmpty()) {
                 Node node = queue.poll();
-                if (relaxEdges(node, queue, processed, previous, toIndex)) {
+                if (relaxEdges(node, queue, processed, previous)) {
                     if (processedRev.containsKey(node.index)) {
                         return shortestPath(queue, queueRev, processed, processedRev,
                             previous, previousRev, fromIndex, toIndex);
@@ -126,7 +126,7 @@ public class FriendSuggestion {
                 }
 
                 node = queueRev.poll();
-                if (relaxEdges(node, queueRev, processedRev, previousRev, fromIndex)) {
+                if (relaxEdges(node, queueRev, processedRev, previousRev)) {
                     if (processed.containsKey(node.index)) {
                         return shortestPath(queue, queueRev, processed, processedRev,
                                 previous, previousRev, fromIndex, toIndex);
@@ -140,9 +140,9 @@ public class FriendSuggestion {
         }
 
         private boolean relaxEdges(Node node, PriorityQueue<Node> queue, Map<Integer,Node> processed,
-                Node[] previous, int toIndex) {
+                Node[] previous) {
             long[] distances = ((NodeComparator)queue.comparator()).distances;
-            if (node.outgoing.size() == 0 && node.index != toIndex) {
+            if (distances[node.index] == Long.MAX_VALUE) {
                 return false;
             }
 
@@ -329,7 +329,8 @@ public class FriendSuggestion {
 
             int queriesQty = scanner.nextInt();
             for (int index = 0; index < queriesQty; index++) {
-                System.out.println(graph.bidirectionalDijkstra(scanner.nextInt() - 1, scanner.nextInt() - 1));
+                Path path = graph.bidirectionalDijkstra(scanner.nextInt() - 1, scanner.nextInt() - 1);
+                System.out.println(path == null ? -1 : path.totalWeight);
             }
         }
     }
