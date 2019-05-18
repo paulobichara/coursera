@@ -79,30 +79,8 @@ public class DistanceWithCoordinates {
         }
     }
 
-    private static class NodeComparator implements Comparator<Node> {
-        long[] distances;
-        double[] potentials;
-
-        NodeComparator(int qtyNodes) {
-            this.distances = new long[qtyNodes];
-            potentials = new double[qtyNodes];
-        }
-
-        @Override
-        public int compare(Node o1, Node o2) {
-            if (distances[o1.index] == Long.MAX_VALUE) {
-                if (distances[o2.index] == Long.MAX_VALUE) {
-                    return 0;
-                } else {
-                    return 1;
-                }
-            } else if (distances[o2.index] == Long.MAX_VALUE) {
-                return -1;
-            }
-
-            return Double.compare(distances[o1.index] + potentials[o1.index],
-                    distances[o2.index] + potentials[o2.index]);
-        }
+    private enum SearchDirection {
+        FORWARD, BACKWARD
     }
 
     static class GraphWithReverse extends DirectedGraph {
@@ -126,13 +104,48 @@ public class DistanceWithCoordinates {
             reverse.addEdge(toIndex, fromIndex, weight);
         }
 
+        private static class NodeComparator implements Comparator<Node> {
+            long[] distances;
+            double[] potentials;
+            double[] potentialsRev;
+            SearchDirection direction;
+
+            NodeComparator(SearchDirection direction) {
+                this.direction = direction;
+            }
+
+            @Override
+            public int compare(Node o1, Node o2) {
+                if (distances[o1.index] == Long.MAX_VALUE) {
+                    if (distances[o2.index] == Long.MAX_VALUE) {
+                        return 0;
+                    } else {
+                        return 1;
+                    }
+                } else if (distances[o2.index] == Long.MAX_VALUE) {
+                    return -1;
+                }
+
+                return Double.compare(distances[o1.index] + getRealPotential(o1),
+                    distances[o2.index] + getRealPotential(o2));
+            }
+
+            private double getRealPotential(Node node) {
+                double realPotential = (potentials[node.index] - potentialsRev[node.index]) / 2;
+                if (SearchDirection.BACKWARD.equals(direction)) {
+                    return -realPotential;
+                }
+                return realPotential;
+            }
+        }
+
         Path bidirectionalDijkstra(int fromIndex, int toIndex) {
             if (fromIndex == toIndex) {
                 return new Path(toIndex, 0);
             }
 
-            PriorityQueue<Node> queue = new PriorityQueue<>(new NodeComparator(nodes.length));
-            PriorityQueue<Node> queueRev = new PriorityQueue<>(new NodeComparator(nodes.length));
+            PriorityQueue<Node> queue = new PriorityQueue<>(new NodeComparator(SearchDirection.FORWARD));
+            PriorityQueue<Node> queueRev = new PriorityQueue<>(new NodeComparator(SearchDirection.BACKWARD));
             initializeQueues(queue, queueRev, fromIndex, toIndex);
 
             Map<Integer,Node> processed = new HashMap<>();
@@ -188,10 +201,11 @@ public class DistanceWithCoordinates {
 
         private void initializeQueues(PriorityQueue<Node> queue, PriorityQueue<Node> queueRev, int fromIndex,
             int toIndex) {
-            long[] distances = ((NodeComparator)queue.comparator()).distances;
-            double[] potentials = ((NodeComparator)queue.comparator()).potentials;
-            long[] distancesRev = ((NodeComparator)queueRev.comparator()).distances;
-            double[] potentialsRev = ((NodeComparator)queueRev.comparator()).potentials;
+            double[] potentials = new double[qtyNodes];
+            double[] potentialsRev = new double[qtyNodes];
+
+            long[] distances = new long[qtyNodes];
+            long[] distancesRev = new long[qtyNodes];
 
             for (int index = 0; index < nodes.length; index++) {
                 distances[index] = Long.MAX_VALUE;
@@ -202,6 +216,16 @@ public class DistanceWithCoordinates {
 
             distances[fromIndex] = 0;
             distancesRev[toIndex] = 0;
+
+            NodeComparator comparator = ((NodeComparator) queue.comparator());
+            comparator.distances = distances;
+            comparator.potentials = potentials;
+            comparator.potentialsRev = potentialsRev;
+
+            NodeComparator comparatorRev = ((NodeComparator) queueRev.comparator());
+            comparatorRev.distances = distancesRev;
+            comparatorRev.potentials = potentials;
+            comparatorRev.potentialsRev = potentialsRev;
 
             for (int index = 0; index < nodes.length; index++) {
                 queue.add(nodes[index]);
@@ -234,9 +258,9 @@ public class DistanceWithCoordinates {
 
             if (best == null && minDistance < Long.MAX_VALUE) {
                 if (distances[toIndex] == minDistance) {
-                    return super.buildPath(fromIndex, toIndex, previous, distances);
+                    return super.buildPath(toIndex, previous, distances);
                 } else {
-                    Path path = super.buildPath(toIndex, fromIndex, previousRev, distancesRev);
+                    Path path = super.buildPath(fromIndex, previousRev, distancesRev);
                     Collections.reverse(path.nodeSequence);
                     return path;
                 }
@@ -301,6 +325,19 @@ public class DistanceWithCoordinates {
             nodes[fromIndex].outgoing.put(toIndex, edge);
         }
 
+        private static class NodeComparator implements Comparator<Node> {
+            long[] distances;
+
+            NodeComparator(int qtyNodes) {
+                this.distances = new long[qtyNodes];
+            }
+
+            @Override
+            public int compare(Node o1, Node o2) {
+                return Long.compare(distances[o1.index], distances[o2.index]);
+            }
+        }
+
         Path dijkstra(int fromIndex, int toIndex) {
             if (fromIndex == toIndex) {
                 return new Path(toIndex, 0);
@@ -329,10 +366,10 @@ public class DistanceWithCoordinates {
                 }
             }
 
-            return distances[toIndex] == Integer.MAX_VALUE ? null : buildPath(fromIndex, toIndex, previous, distances);
+            return distances[toIndex] == Integer.MAX_VALUE ? null : buildPath(toIndex, previous, distances);
         }
 
-        private Path buildPath(int fromIndex, int toIndex, Node[] previous, long[] distances) {
+        private Path buildPath(int toIndex, Node[] previous, long[] distances) {
             Path path = null;
             for (Node current = nodes[toIndex]; current != null; current = previous[current.index]) {
                 if (path == null) {
