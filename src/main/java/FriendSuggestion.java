@@ -1,5 +1,4 @@
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -72,14 +71,24 @@ public class FriendSuggestion {
     }
 
     private static class NodeComparator implements Comparator<Node> {
-        long[] distances;
+        Long[] distances;
 
         NodeComparator(int qtyNodes) {
-            this.distances = new long[qtyNodes];
+            distances = new Long[qtyNodes];
         }
 
         @Override
         public int compare(Node o1, Node o2) {
+            if (distances[o1.index] == null) {
+                if (distances[o2.index] == null) {
+                    return 0;
+                } else {
+                    return 1;
+                }
+            } else if (distances[o2.index] == null) {
+                return -1;
+            }
+
             return Long.compare(distances[o1.index], distances[o2.index]);
         }
     }
@@ -141,16 +150,17 @@ public class FriendSuggestion {
 
         private boolean relaxEdges(Node node, PriorityQueue<Node> queue, Map<Integer,Node> processed,
                 Node[] previous) {
-            long[] distances = ((NodeComparator)queue.comparator()).distances;
-            if (distances[node.index] == Long.MAX_VALUE) {
+            Long[] distances = ((NodeComparator)queue.comparator()).distances;
+            if (distances[node.index] == null) {
                 return false;
             }
 
             for (Edge edge : node.outgoing.values()) {
-                if (distances[edge.destination.index] > distances[node.index] + edge.weight) {
+                long possibility = distances[node.index] + edge.weight;
+                if (distances[edge.destination.index] == null || distances[edge.destination.index] > possibility) {
                     previous[edge.destination.index] = node;
                     queue.remove(edge.destination);
-                    distances[edge.destination.index] = distances[node.index] + edge.weight;
+                    distances[edge.destination.index] = possibility;
                     queue.add(edge.destination);
                 }
             }
@@ -160,16 +170,16 @@ public class FriendSuggestion {
 
         private void initializeQueues(PriorityQueue<Node> queue, PriorityQueue<Node> queueRev, int fromIndex,
             int toIndex) {
-            long[] distances = ((NodeComparator)queue.comparator()).distances;
-            long[] distancesRev = ((NodeComparator)queueRev.comparator()).distances;
+            Long[] distances = new Long[qtyNodes];
+            Long[] distancesRev = new Long[qtyNodes];
+            distances[fromIndex] = 0L;
+            distancesRev[toIndex] = 0L;
 
-            for (int index = 0; index < nodes.length; index++) {
-                distances[index] = Long.MAX_VALUE;
-                distancesRev[index] = Long.MAX_VALUE;
-            }
+            NodeComparator comparator = ((NodeComparator) queue.comparator());
+            comparator.distances = distances;
 
-            distances[fromIndex] = 0;
-            distancesRev[toIndex] = 0;
+            NodeComparator comparatorRev = ((NodeComparator) queueRev.comparator());
+            comparatorRev.distances = distancesRev;
 
             for (int index = 0; index < nodes.length; index++) {
                 queue.add(getNode(index));
@@ -179,13 +189,14 @@ public class FriendSuggestion {
 
         private Path shortestPath(PriorityQueue<Node> queue, PriorityQueue<Node> queueRev, Map<Integer,Node> processed,
                 Map<Integer,Node> processedRev, Node[] previous, Node[] previousRev, int fromIndex, int toIndex) {
-            long[] distances = ((NodeComparator)queue.comparator()).distances;
-            long[] distancesRev = ((NodeComparator)queueRev.comparator()).distances;
-            long minDistance = Math.min(distances[toIndex], distancesRev[fromIndex]);
+            Long[] distances = ((NodeComparator)queue.comparator()).distances;
+            Long[] distancesRev = ((NodeComparator)queueRev.comparator()).distances;
+            long minDistance = Math.min(distances[toIndex] == null ? Long.MAX_VALUE : distances[toIndex],
+                    distancesRev[fromIndex] == null ? Long.MAX_VALUE : distancesRev[fromIndex]);
             Node best = null;
 
             for (Node node : processed.values()) {
-                if (distancesRev[node.index] != Long.MAX_VALUE
+                if (distancesRev[node.index] != null
                         && minDistance > distances[node.index] + distancesRev[node.index]) {
                     best = node;
                     minDistance = distances[node.index] + distancesRev[node.index];
@@ -193,7 +204,7 @@ public class FriendSuggestion {
             }
 
             for (Node node : processedRev.values()) {
-                if (distances[node.index] != Long.MAX_VALUE
+                if (distances[node.index] != null
                         && minDistance > distances[node.index] + distancesRev[node.index]) {
                     best = node;
                     minDistance = distances[node.index] + distancesRev[node.index];
@@ -201,10 +212,10 @@ public class FriendSuggestion {
             }
 
             if (best == null && minDistance < Long.MAX_VALUE) {
-                if (distances[toIndex] == minDistance) {
-                    return super.buildPath(fromIndex, toIndex, previous, distances);
+                if (distances[toIndex] != null && distances[toIndex] == minDistance) {
+                    return super.buildPath(toIndex, previous, distances);
                 } else {
-                    Path path = super.buildPath(toIndex, fromIndex, previousRev, distancesRev);
+                    Path path = super.buildPath(fromIndex, previousRev, distancesRev);
                     Collections.reverse(path.nodeSequence);
                     return path;
                 }
@@ -271,10 +282,9 @@ public class FriendSuggestion {
                 return new Path(toIndex, 0);
             }
 
-            NodeComparator comparator = new NodeComparator(nodes.length);
-            long[] distances = comparator.distances;
-            Arrays.fill(distances, Integer.MAX_VALUE);
-            distances[fromIndex] = 0;
+            NodeComparator comparator = new NodeComparator(qtyNodes);
+            Long[] distances = comparator.distances;
+            distances[fromIndex] = 0L;
 
             PriorityQueue<Node> queue = new PriorityQueue<>(comparator);
             Collections.addAll(queue, nodes);
@@ -283,8 +293,14 @@ public class FriendSuggestion {
 
             while (!queue.isEmpty()) {
                 Node node = queue.poll();
+
+                if (distances[node.index] == null) {
+                    return null;
+                }
+
                 for (Edge edge : node.outgoing.values()) {
-                    if (distances[edge.destination.index] > distances[node.index] + edge.weight) {
+                    if (distances[edge.destination.index] == null
+                            || distances[edge.destination.index] > distances[node.index] + edge.weight) {
                         previous[edge.destination.index] = node;
                         queue.remove(edge.destination);
                         distances[edge.destination.index] = distances[node.index] + edge.weight;
@@ -294,10 +310,10 @@ public class FriendSuggestion {
                 }
             }
 
-            return distances[toIndex] == Integer.MAX_VALUE ? null : buildPath(fromIndex, toIndex, previous, distances);
+            return distances[toIndex] == null ? null : buildPath(toIndex, previous, distances);
         }
 
-        private Path buildPath(int fromIndex, int toIndex, Node[] previous, long[] distances) {
+        private Path buildPath(int toIndex, Node[] previous, Long[] distances) {
             Path path = null;
             for (Node current = getNode(toIndex); current != null; current = previous[current.index]) {
                 if (path == null) {
