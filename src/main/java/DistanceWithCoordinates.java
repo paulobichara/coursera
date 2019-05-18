@@ -1,47 +1,12 @@
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Scanner;
-import java.util.Stack;
 
 public class DistanceWithCoordinates {
-
-    static class Path {
-        private static final String EDGE = " -> ";
-
-        Stack<Integer> nodeSequence;
-        long totalWeight;
-
-        Path(int toIndex, long totalWeight) {
-            nodeSequence = new Stack<>();
-            nodeSequence.push(toIndex + 1);
-            this.totalWeight = totalWeight;
-        }
-
-        void pushNode(Node node) {
-            nodeSequence.push(node.index + 1);
-        }
-
-        @Override
-        public String toString() {
-            @SuppressWarnings("unchecked")
-            Stack<Integer> sequence = (Stack) nodeSequence.clone();
-            StringBuilder builder = new StringBuilder();
-
-            while (!sequence.isEmpty()) {
-                builder.append(sequence.pop());
-                if (!sequence.isEmpty()) {
-                    builder.append(EDGE);
-                }
-            }
-            return builder.toString();
-        }
-    }
 
     private static class Edge {
         Node destination;
@@ -139,9 +104,9 @@ public class DistanceWithCoordinates {
             }
         }
 
-        Path bidirectionalDijkstra(int fromIndex, int toIndex) {
+        long bidirectionalDijkstra(int fromIndex, int toIndex) {
             if (fromIndex == toIndex) {
-                return new Path(toIndex, 0);
+                return 0;
             }
 
             PriorityQueue<Node> queue = new PriorityQueue<>(new NodeComparator(SearchDirection.FORWARD));
@@ -158,8 +123,8 @@ public class DistanceWithCoordinates {
                 Node node = queue.poll();
                 if (relaxEdges(node, queue, processed, previous)) {
                     if (processedRev.containsKey(node.index)) {
-                        return shortestPath(queue, queueRev, processed, processedRev,
-                            previous, previousRev, fromIndex, toIndex);
+                        long minDistance = shortestPath(queue, queueRev, processed, processedRev, fromIndex, toIndex);
+                        return minDistance == Long.MAX_VALUE ? -1 : minDistance;
                     }
                 } else {
                     break;
@@ -168,15 +133,15 @@ public class DistanceWithCoordinates {
                 node = queueRev.poll();
                 if (relaxEdges(node, queueRev, processedRev, previousRev)) {
                     if (processed.containsKey(node.index)) {
-                        return shortestPath(queue, queueRev, processed, processedRev,
-                            previous, previousRev, fromIndex, toIndex);
+                        long minDistance = shortestPath(queue, queueRev, processed, processedRev, fromIndex, toIndex);
+                        return minDistance == Long.MAX_VALUE ? -1 : minDistance;
                     }
                 } else {
                     break;
                 }
             }
 
-            return null;
+            return -1;
         }
 
         private boolean relaxEdges(Node node, PriorityQueue<Node> queue, Map<Integer,Node> processed,
@@ -233,17 +198,15 @@ public class DistanceWithCoordinates {
             }
         }
 
-        private Path shortestPath(PriorityQueue<Node> queue, PriorityQueue<Node> queueRev, Map<Integer,Node> processed,
-                Map<Integer,Node> processedRev, Node[] previous, Node[] previousRev, int fromIndex, int toIndex) {
+        private long shortestPath(PriorityQueue<Node> queue, PriorityQueue<Node> queueRev, Map<Integer,Node> processed,
+                Map<Integer,Node> processedRev, int fromIndex, int toIndex) {
             long[] distances = ((NodeComparator)queue.comparator()).distances;
             long[] distancesRev = ((NodeComparator)queueRev.comparator()).distances;
             long minDistance = Math.min(distances[toIndex], distancesRev[fromIndex]);
-            Node best = null;
 
             for (Node node : processed.values()) {
                 if (distancesRev[node.index] != Long.MAX_VALUE
                         && minDistance > distances[node.index] + distancesRev[node.index]) {
-                    best = node;
                     minDistance = distances[node.index] + distancesRev[node.index];
                 }
             }
@@ -251,60 +214,11 @@ public class DistanceWithCoordinates {
             for (Node node : processedRev.values()) {
                 if (distances[node.index] != Long.MAX_VALUE
                         && minDistance > distances[node.index] + distancesRev[node.index]) {
-                    best = node;
                     minDistance = distances[node.index] + distancesRev[node.index];
                 }
             }
-
-            if (best == null && minDistance < Long.MAX_VALUE) {
-                if (distances[toIndex] == minDistance) {
-                    return super.buildPath(toIndex, previous, distances);
-                } else {
-                    Path path = super.buildPath(fromIndex, previousRev, distancesRev);
-                    Collections.reverse(path.nodeSequence);
-                    return path;
-                }
-            } else if (minDistance < Long.MAX_VALUE) {
-                return buildPath(best, previous, previousRev, fromIndex, toIndex, minDistance);
-            }
-
-            return null;
+            return minDistance;
         }
-
-        private Path buildPath(Node best, Node[] previous, Node[] previousRev, int fromIndex, int toIndex, long minDistance) {
-            if (minDistance == Long.MAX_VALUE) {
-                return null;
-            }
-
-            if (best == null) {
-                Path path = new Path(toIndex, minDistance);
-                path.pushNode(nodes[fromIndex]);
-                return path;
-            }
-
-            List<Node> partial = new ArrayList<>();
-            for (Node current = best; current != null; current = previous[current.index]) {
-                partial.add(current);
-            }
-
-            Stack<Node> partialRev = new Stack<>();
-            for (Node current = previousRev[best.index]; current != null && current.index != toIndex;
-                    current = previousRev[current.index]) {
-                partialRev.push(current);
-            }
-
-            Path result = new Path(toIndex, minDistance);
-            while (!partialRev.isEmpty()) {
-                result.pushNode(partialRev.pop());
-            }
-
-            for (int index = 0; index < partial.size(); index++) {
-                result.pushNode(partial.get(index));
-            }
-
-            return result;
-        }
-
     }
 
     static class DirectedGraph {
@@ -338,9 +252,9 @@ public class DistanceWithCoordinates {
             }
         }
 
-        Path dijkstra(int fromIndex, int toIndex) {
+        long dijkstra(int fromIndex, int toIndex) {
             if (fromIndex == toIndex) {
-                return new Path(toIndex, 0);
+                return 0;
             }
 
             NodeComparator comparator = new NodeComparator(nodes.length);
@@ -366,19 +280,7 @@ public class DistanceWithCoordinates {
                 }
             }
 
-            return distances[toIndex] == Integer.MAX_VALUE ? null : buildPath(toIndex, previous, distances);
-        }
-
-        private Path buildPath(int toIndex, Node[] previous, long[] distances) {
-            Path path = null;
-            for (Node current = nodes[toIndex]; current != null; current = previous[current.index]) {
-                if (path == null) {
-                    path = new Path(current.index, distances[current.index]);
-                } else {
-                    path.pushNode(current);
-                }
-            }
-            return path;
+            return distances[toIndex] == Integer.MAX_VALUE ? -1 : distances[toIndex];
         }
     }
 
@@ -398,8 +300,7 @@ public class DistanceWithCoordinates {
 
             int queriesQty = scanner.nextInt();
             for (int index = 0; index < queriesQty; index++) {
-                Path path = graph.bidirectionalDijkstra(scanner.nextInt() - 1, scanner.nextInt() - 1);
-                System.out.println(path == null ? -1 : path.totalWeight);
+                System.out.println(graph.bidirectionalDijkstra(scanner.nextInt() - 1, scanner.nextInt() - 1));
             }
         }
     }
