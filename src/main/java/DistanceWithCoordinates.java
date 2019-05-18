@@ -70,24 +70,29 @@ public class DistanceWithCoordinates {
         }
 
         private static class NodeComparator implements Comparator<Node> {
-            long[] distances;
-            double[] potentials;
-            double[] potentialsRev;
+            Long[] distances;
             SearchDirection direction;
 
-            NodeComparator(SearchDirection direction) {
+            GraphWithReverse graph;
+            int sourceIndex;
+            int targetIndex;
+
+            NodeComparator(SearchDirection direction, GraphWithReverse graph, int sourceIndex, int targetIndex) {
                 this.direction = direction;
+                this.graph = graph;
+                this.sourceIndex = sourceIndex;
+                this.targetIndex = targetIndex;
             }
 
             @Override
             public int compare(Node o1, Node o2) {
-                if (distances[o1.index] == Long.MAX_VALUE) {
-                    if (distances[o2.index] == Long.MAX_VALUE) {
+                if (distances[o1.index] == null) {
+                    if (distances[o2.index] == null) {
                         return 0;
                     } else {
                         return 1;
                     }
-                } else if (distances[o2.index] == Long.MAX_VALUE) {
+                } else if (distances[o2.index] == null) {
                     return -1;
                 }
 
@@ -96,10 +101,13 @@ public class DistanceWithCoordinates {
             }
 
             private double getRealPotential(Node node) {
-                double realPotential = (potentials[node.index] - potentialsRev[node.index]) / 2;
+                double realPotential = (node.getPotential(graph.nodes[targetIndex]) -
+                        node.getPotential(graph.nodes[sourceIndex])) / 2;
+
                 if (SearchDirection.BACKWARD.equals(direction)) {
                     return -realPotential;
                 }
+
                 return realPotential;
             }
         }
@@ -109,8 +117,11 @@ public class DistanceWithCoordinates {
                 return 0;
             }
 
-            PriorityQueue<Node> queue = new PriorityQueue<>(new NodeComparator(SearchDirection.FORWARD));
-            PriorityQueue<Node> queueRev = new PriorityQueue<>(new NodeComparator(SearchDirection.BACKWARD));
+            PriorityQueue<Node> queue = new PriorityQueue<>(new NodeComparator(SearchDirection.FORWARD, this,
+                    fromIndex, toIndex));
+            PriorityQueue<Node> queueRev = new PriorityQueue<>(new NodeComparator(SearchDirection.BACKWARD, this,
+                    fromIndex, toIndex));
+
             initializeQueues(queue, queueRev, fromIndex, toIndex);
 
             Map<Integer,Node> processed = new HashMap<>();
@@ -146,14 +157,14 @@ public class DistanceWithCoordinates {
 
         private boolean relaxEdges(Node node, PriorityQueue<Node> queue, Map<Integer,Node> processed,
                 Node[] previous) {
-            long[] distances = ((NodeComparator)queue.comparator()).distances;
-            if (distances[node.index] == Long.MAX_VALUE) {
+            Long[] distances = ((NodeComparator)queue.comparator()).distances;
+            if (distances[node.index] == null) {
                 return false;
             }
 
             for (Edge edge : node.outgoing.values()) {
                 long possibility = distances[node.index] + edge.weight;
-                if (distances[edge.destination.index] > possibility) {
+                if (distances[edge.destination.index] == null || distances[edge.destination.index] > possibility) {
                     previous[edge.destination.index] = node;
                     queue.remove(edge.destination);
                     distances[edge.destination.index] = possibility;
@@ -166,31 +177,16 @@ public class DistanceWithCoordinates {
 
         private void initializeQueues(PriorityQueue<Node> queue, PriorityQueue<Node> queueRev, int fromIndex,
             int toIndex) {
-            double[] potentials = new double[qtyNodes];
-            double[] potentialsRev = new double[qtyNodes];
-
-            long[] distances = new long[qtyNodes];
-            long[] distancesRev = new long[qtyNodes];
-
-            for (int index = 0; index < nodes.length; index++) {
-                distances[index] = Long.MAX_VALUE;
-                potentials[index] = nodes[index].getPotential(nodes[toIndex]);
-                distancesRev[index] = Long.MAX_VALUE;
-                potentialsRev[index] = nodes[index].getPotential(nodes[fromIndex]);
-            }
-
-            distances[fromIndex] = 0;
-            distancesRev[toIndex] = 0;
+            Long[] distances = new Long[qtyNodes];
+            Long[] distancesRev = new Long[qtyNodes];
+            distances[fromIndex] = 0L;
+            distancesRev[toIndex] = 0L;
 
             NodeComparator comparator = ((NodeComparator) queue.comparator());
             comparator.distances = distances;
-            comparator.potentials = potentials;
-            comparator.potentialsRev = potentialsRev;
 
             NodeComparator comparatorRev = ((NodeComparator) queueRev.comparator());
             comparatorRev.distances = distancesRev;
-            comparatorRev.potentials = potentials;
-            comparatorRev.potentialsRev = potentialsRev;
 
             for (int index = 0; index < nodes.length; index++) {
                 queue.add(nodes[index]);
@@ -200,19 +196,20 @@ public class DistanceWithCoordinates {
 
         private long shortestPath(PriorityQueue<Node> queue, PriorityQueue<Node> queueRev, Map<Integer,Node> processed,
                 Map<Integer,Node> processedRev, int fromIndex, int toIndex) {
-            long[] distances = ((NodeComparator)queue.comparator()).distances;
-            long[] distancesRev = ((NodeComparator)queueRev.comparator()).distances;
-            long minDistance = Math.min(distances[toIndex], distancesRev[fromIndex]);
+            Long[] distances = ((NodeComparator)queue.comparator()).distances;
+            Long[] distancesRev = ((NodeComparator)queueRev.comparator()).distances;
+            long minDistance = Math.min(distances[toIndex] == null ? Long.MAX_VALUE : distances[toIndex],
+                    distancesRev[fromIndex] == null ? Long.MAX_VALUE : distancesRev[fromIndex]);
 
             for (Node node : processed.values()) {
-                if (distancesRev[node.index] != Long.MAX_VALUE
+                if (distancesRev[node.index] != null
                         && minDistance > distances[node.index] + distancesRev[node.index]) {
                     minDistance = distances[node.index] + distancesRev[node.index];
                 }
             }
 
             for (Node node : processedRev.values()) {
-                if (distances[node.index] != Long.MAX_VALUE
+                if (distances[node.index] != null
                         && minDistance > distances[node.index] + distancesRev[node.index]) {
                     minDistance = distances[node.index] + distancesRev[node.index];
                 }
@@ -265,13 +262,10 @@ public class DistanceWithCoordinates {
             PriorityQueue<Node> queue = new PriorityQueue<>(comparator);
             Collections.addAll(queue, nodes);
 
-            Node[] previous = new Node[nodes.length];
-
             while (!queue.isEmpty()) {
                 Node node = queue.poll();
                 for (Edge edge : node.outgoing.values()) {
                     if (distances[edge.destination.index] > distances[node.index] + edge.weight) {
-                        previous[edge.destination.index] = node;
                         queue.remove(edge.destination);
                         distances[edge.destination.index] = distances[node.index] + edge.weight;
                         comparator.distances = distances;
