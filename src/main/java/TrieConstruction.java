@@ -17,14 +17,6 @@ public class TrieConstruction {
             outgoing = new HashMap<>();
             id = ID.getAndIncrement();
         }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (!(obj instanceof Node)) {
-                return false;
-            }
-            return this.id == ((Node)obj).id;
-        }
     }
 
     private static class Trie {
