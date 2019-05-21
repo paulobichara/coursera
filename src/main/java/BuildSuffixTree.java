@@ -1,11 +1,13 @@
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Stack;
 
 public class BuildSuffixTree {
 
-    private static class Edge {
+    static class Edge {
         Node target;
         int startIndex;
         int length;
@@ -17,7 +19,7 @@ public class BuildSuffixTree {
         }
     }
 
-    private static class Node {
+    static class Node {
         Map<Character, Edge> outgoing;
 
         Node() {
@@ -25,7 +27,7 @@ public class BuildSuffixTree {
         }
     }
 
-    private static class SuffixTree {
+    static class SuffixTree {
 
         Node root;
         String text;
@@ -75,6 +77,25 @@ public class BuildSuffixTree {
                             length - (charIndexCurrent - startIndex)));
                 }
             }
+        }
+
+        List<String> getAllEdges() {
+            Stack<Node> nodeStack = new Stack<>();
+            nodeStack.push(root);
+
+            List<String> edges = new ArrayList<>();
+            while (!nodeStack.isEmpty()) {
+                Node node = nodeStack.pop();
+                for (Edge edge : node.outgoing.values()) {
+                    StringBuilder builder = new StringBuilder();
+                    for (int index = edge.startIndex; index < edge.startIndex + edge.length; index++) {
+                        builder.append(text.charAt(index));
+                    }
+                    edges.add(builder.toString());
+                    nodeStack.push(edge.target);
+                }
+            }
+            return edges;
         }
 
         void printAllEdges() {
