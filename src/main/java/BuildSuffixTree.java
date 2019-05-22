@@ -36,45 +36,45 @@ public class BuildSuffixTree {
             this.text = text;
             root = new Node();
 
-            for (int index = 0; index < text.length(); index++) {
-                Node current = root;
-                Edge edge = current.outgoing.get(text.charAt(index));
-                if (edge == null) {
-                    current.outgoing.put(text.charAt(index), new Edge(new Node(), index, text.length() - index));
-                } else {
-                    createEdgesIfRequired(index, edge);
-                }
+            for (int startIndex = 0; startIndex < text.length(); startIndex++) {
+                createEdgesIfRequired(startIndex);
             }
         }
 
-        private void createEdgesIfRequired(int startIndex, Edge edge) {
-            int length = text.length() - startIndex;
-            Edge current = edge;
-            int charIndexCurrent = startIndex + 1;
-            int charIndexEdge;
+        private void createEdgesIfRequired(int startIndex) {
+            Node current = root;
+            int suffixCharIndex = startIndex;
 
             while (current != null) {
-                for (charIndexEdge = current.startIndex + 1;
-                        charIndexEdge < text.length() && charIndexCurrent < text.length();
-                        charIndexEdge++, charIndexCurrent++) {
-                    if (text.charAt(charIndexEdge) != text.charAt(charIndexCurrent)) {
+                int suffixLength = text.length() - suffixCharIndex;
+                Edge edge = current.outgoing.get(text.charAt(suffixCharIndex));
+                if (edge != null) {
+                    int edgeCharIndex = edge.startIndex + 1;
+                    suffixCharIndex++;
+                    while (edgeCharIndex < edge.length && suffixCharIndex < suffixLength
+                            && text.charAt(suffixCharIndex) == text.charAt(edgeCharIndex)) {
+                        edgeCharIndex++;
+                        suffixCharIndex++;
+                    }
+                    if (edgeCharIndex == edge.length) {
+                        if (suffixCharIndex < suffixLength) {
+                            current = edge.target;
+                        } else {
+                            return;
+                        }
+                    } else if (edgeCharIndex < edge.length) {
                         int oldLength = edge.length;
-                        edge.length = charIndexEdge - edge.startIndex;
-                        edge.target.outgoing.put(text.charAt(charIndexEdge),
-                                new Edge(new Node(), charIndexEdge, oldLength - edge.length));
-                        edge.target.outgoing.put(text.charAt(charIndexCurrent),
-                                new Edge(new Node(), charIndexCurrent, length - edge.length));
+                        edge.length = edgeCharIndex - edge.startIndex;
+                        edge.target.outgoing.put(text.charAt(edgeCharIndex),
+                                new Edge(new Node(), edgeCharIndex, oldLength - edge.length));
+                        edge.target.outgoing.put(text.charAt(suffixCharIndex),
+                                new Edge(new Node(), suffixCharIndex, suffixLength - edge.length));
                         return;
                     }
-                }
-
-                length = length - (charIndexCurrent - startIndex);
-
-                current = edge.target.outgoing.get(text.charAt(charIndexCurrent));
-                if (current == null) {
-                    edge.target.outgoing.put(text.charAt(charIndexCurrent),
-                        new Edge(new Node(), charIndexCurrent,
-                            length - (charIndexCurrent - startIndex)));
+                } else {
+                    current.outgoing.put(text.charAt(suffixCharIndex),
+                            new Edge(new Node(), suffixCharIndex, text.length() - suffixCharIndex));
+                    return;
                 }
             }
         }

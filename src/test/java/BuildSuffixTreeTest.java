@@ -9,6 +9,7 @@ public class BuildSuffixTreeTest {
     public void testSamples() {
         assertString("A$", new String[] { "A$", "$" });
         assertString("ACA$", new String[] { "$", "$", "CA$", "CA$", "A" });
+        assertString("ATAAATG$", new String[] { "AAATG$", "G$", "T", "ATG$", "TG$", "A", "A", "AAATG$", "G$", "T", "G$", "$" });
     }
 
     private void assertString(String text, String[] expected) {
