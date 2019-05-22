@@ -63,11 +63,14 @@ public class BuildSuffixTree {
                             return;
                         }
                     } else {
-                        int oldLength = edge.length;
-                        edge.length = edgeCharIndex - edge.startIndex;
-                        edge.target.outgoing.put(text.charAt(edgeCharIndex),
-                                new Edge(new Node(), edgeCharIndex, oldLength - edge.length));
-                        edge.target.outgoing.put(text.charAt(suffixCharIndex),
+                        Edge newEdge = new Edge(new Node(), edge.startIndex, edgeCharIndex - edge.startIndex);
+                        current.outgoing.put(text.charAt(newEdge.startIndex), newEdge);
+
+                        edge.startIndex = edgeCharIndex;
+                        edge.length = edge.length - newEdge.length;
+                        newEdge.target.outgoing.put(text.charAt(edgeCharIndex), edge);
+
+                        newEdge.target.outgoing.put(text.charAt(suffixCharIndex),
                                 new Edge(new Node(), suffixCharIndex, text.length() - suffixCharIndex));
                         return;
                     }
