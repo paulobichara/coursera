@@ -46,29 +46,29 @@ public class BuildSuffixTree {
             int suffixCharIndex = startIndex;
 
             while (current != null) {
-                int suffixLength = text.length() - suffixCharIndex;
                 Edge edge = current.outgoing.get(text.charAt(suffixCharIndex));
                 if (edge != null) {
                     int edgeCharIndex = edge.startIndex + 1;
+                    int edgeEndIndex = edge.startIndex + edge.length - 1;
                     suffixCharIndex++;
-                    while (edgeCharIndex < edge.length && suffixCharIndex < suffixLength
+                    while (edgeCharIndex <= edgeEndIndex && suffixCharIndex < text.length()
                             && text.charAt(suffixCharIndex) == text.charAt(edgeCharIndex)) {
                         edgeCharIndex++;
                         suffixCharIndex++;
                     }
-                    if (edgeCharIndex == edge.length) {
-                        if (suffixCharIndex < suffixLength) {
+                    if (edgeCharIndex > edgeEndIndex) {
+                        if (suffixCharIndex < text.length()) {
                             current = edge.target;
                         } else {
                             return;
                         }
-                    } else if (edgeCharIndex < edge.length) {
+                    } else {
                         int oldLength = edge.length;
                         edge.length = edgeCharIndex - edge.startIndex;
                         edge.target.outgoing.put(text.charAt(edgeCharIndex),
                                 new Edge(new Node(), edgeCharIndex, oldLength - edge.length));
                         edge.target.outgoing.put(text.charAt(suffixCharIndex),
-                                new Edge(new Node(), suffixCharIndex, suffixLength - edge.length));
+                                new Edge(new Node(), suffixCharIndex, text.length() - suffixCharIndex));
                         return;
                     }
                 } else {
