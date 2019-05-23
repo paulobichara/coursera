@@ -46,13 +46,16 @@ public class TrieConstruction {
             Stack<Node> nodeStack = new Stack<>();
             nodeStack.push(root);
 
+            StringBuilder builder = new StringBuilder();
             while (!nodeStack.isEmpty()) {
                 Node node = nodeStack.pop();
                 for (Entry<Character, Node> entry : node.outgoing.entrySet()) {
-                    System.out.println(node.id + ARROW + entry.getValue().id + ":" + entry.getKey());
+                    builder.append(node.id).append(ARROW).append(entry.getValue().id).append(":")
+                            .append(entry.getKey()).append("\n");
                     nodeStack.push(entry.getValue());
                 }
             }
+            System.out.print(builder.toString());
         }
 
     }

@@ -33,6 +33,7 @@ public class TrieMatching {
         }
 
         void matches(String text) {
+            StringBuilder builder = new StringBuilder();
             for (int index = 0; index < text.length(); index++) {
                 char currentSymbol = text.charAt(index);
                 Node currentNode = root;
@@ -44,9 +45,10 @@ public class TrieMatching {
                 }
 
                 if (currentNode.outgoing.isEmpty()) {
-                    System.out.print(index + " ");
+                    builder.append(index).append(" ");
                 }
             }
+            System.out.println(builder.toString());
         }
 
     }

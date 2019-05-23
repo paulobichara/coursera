@@ -37,6 +37,7 @@ public class ExtendedTrieMatching {
 
         void matches(String text) {
             Map<Integer, Boolean> countByStart = new HashMap<>();
+            StringBuilder builder = new StringBuilder();
 
             for (int index = 0; index < text.length(); index++) {
                 char currentSymbol = text.charAt(index);
@@ -50,11 +51,13 @@ public class ExtendedTrieMatching {
 
                 if (currentNode.isPatternEnd) {
                     if (!countByStart.containsKey(index)) {
-                        System.out.print(index + " ");
+                        builder.append(index).append(" ");
                     }
                     countByStart.put(index, true);
                 }
             }
+
+            System.out.println(builder.toString());
         }
 
     }
