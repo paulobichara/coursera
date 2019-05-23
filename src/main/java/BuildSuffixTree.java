@@ -105,19 +105,19 @@ public class BuildSuffixTree {
             Stack<Node> nodeStack = new Stack<>();
             nodeStack.push(root);
 
+            StringBuilder builder = new StringBuilder();
             while (!nodeStack.isEmpty()) {
                 Node node = nodeStack.pop();
                 for (Edge edge : node.outgoing.values()) {
                     for (int index = edge.startIndex; index < edge.startIndex + edge.length; index++) {
-                        System.out.print(text.charAt(index));
+                        builder.append(text.charAt(index));
                     }
-                    System.out.println();
-
+                    builder.append("\n");
                     nodeStack.push(edge.target);
                 }
             }
+            System.out.println(builder.toString());
         }
-
     }
 
     public static void main(String[] args) {
