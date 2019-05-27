@@ -1,15 +1,15 @@
+package coursera.strings.week1;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
-public class ExtendedTrieMatching {
+public class TrieMatching {
     private static class Node {
         Map<Character, Node> outgoing;
-        boolean isPatternEnd;
 
         Node() {
             outgoing = new HashMap<>();
-            isPatternEnd = false;
         }
     }
 
@@ -31,32 +31,25 @@ public class ExtendedTrieMatching {
                         current = node;
                     }
                 }
-                current.isPatternEnd = true;
             }
         }
 
         void matches(String text) {
-            Map<Integer, Boolean> countByStart = new HashMap<>();
             StringBuilder builder = new StringBuilder();
-
             for (int index = 0; index < text.length(); index++) {
                 char currentSymbol = text.charAt(index);
                 Node currentNode = root;
 
-                for (int currentIndex = index; currentIndex < text.length() && !currentNode.isPatternEnd
-                    && currentNode.outgoing.containsKey(currentSymbol); currentIndex++) {
+                for (int currentIndex = index; currentIndex < text.length() && !currentNode.outgoing.isEmpty()
+                        && currentNode.outgoing.containsKey(currentSymbol); currentIndex++) {
                     currentNode = currentNode.outgoing.get(currentSymbol);
                     currentSymbol = currentIndex + 1 < text.length() ? text.charAt(currentIndex + 1) : '\u0000';
                 }
 
-                if (currentNode.isPatternEnd) {
-                    if (!countByStart.containsKey(index)) {
-                        builder.append(index).append(" ");
-                    }
-                    countByStart.put(index, true);
+                if (currentNode.outgoing.isEmpty()) {
+                    builder.append(index).append(" ");
                 }
             }
-
             System.out.println(builder.toString());
         }
 

@@ -1,13 +1,23 @@
+package coursera.strings.week1;
+
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Scanner;
+import java.util.Stack;
+import java.util.concurrent.atomic.AtomicInteger;
 
-public class TrieMatching {
+public class TrieConstruction {
+
     private static class Node {
+        private static volatile AtomicInteger ID = new AtomicInteger(0);
+
         Map<Character, Node> outgoing;
+        int id;
 
         Node() {
             outgoing = new HashMap<>();
+            id = ID.getAndIncrement();
         }
     }
 
@@ -32,31 +42,28 @@ public class TrieMatching {
             }
         }
 
-        void matches(String text) {
+        private static final String ARROW = "->";
+
+        void printAllEdges() {
+            Stack<Node> nodeStack = new Stack<>();
+            nodeStack.push(root);
+
             StringBuilder builder = new StringBuilder();
-            for (int index = 0; index < text.length(); index++) {
-                char currentSymbol = text.charAt(index);
-                Node currentNode = root;
-
-                for (int currentIndex = index; currentIndex < text.length() && !currentNode.outgoing.isEmpty()
-                        && currentNode.outgoing.containsKey(currentSymbol); currentIndex++) {
-                    currentNode = currentNode.outgoing.get(currentSymbol);
-                    currentSymbol = currentIndex + 1 < text.length() ? text.charAt(currentIndex + 1) : '\u0000';
-                }
-
-                if (currentNode.outgoing.isEmpty()) {
-                    builder.append(index).append(" ");
+            while (!nodeStack.isEmpty()) {
+                Node node = nodeStack.pop();
+                for (Entry<Character, Node> entry : node.outgoing.entrySet()) {
+                    builder.append(node.id).append(ARROW).append(entry.getValue().id).append(":")
+                            .append(entry.getKey()).append("\n");
+                    nodeStack.push(entry.getValue());
                 }
             }
-            System.out.println(builder.toString());
+            System.out.print(builder.toString());
         }
 
     }
 
     public static void main(String[] args) {
         try (Scanner scanner = new Scanner(System.in)) {
-            String text = scanner.next();
-
             int qtyPatterns = scanner.nextInt();
             String[] patterns = new String[qtyPatterns];
 
@@ -64,7 +71,9 @@ public class TrieMatching {
                 patterns[index] = scanner.next();
             }
 
-            new Trie(patterns).matches(text);
+            Trie trie = new Trie(patterns);
+            trie.printAllEdges();
         }
     }
+
 }

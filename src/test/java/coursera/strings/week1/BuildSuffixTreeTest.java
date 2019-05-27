@@ -1,3 +1,6 @@
+package coursera.strings.week1;
+
+import coursera.strings.week1.BuildSuffixTree;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Assert;
