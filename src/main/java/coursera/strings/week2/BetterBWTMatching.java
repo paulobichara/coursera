@@ -1,3 +1,5 @@
+package coursera.strings.week2;
+
 import java.util.Scanner;
 
 public class BetterBWTMatching {
@@ -13,9 +15,7 @@ public class BetterBWTMatching {
 
         protected CharCounter clone() {
             CharCounter counter = new CharCounter();
-            for (int index = 0; index < count.length; index++) {
-                counter.count[index] = count[index];
-            }
+            System.arraycopy(count, 0, counter.count, 0, count.length);
             return counter;
         }
     }

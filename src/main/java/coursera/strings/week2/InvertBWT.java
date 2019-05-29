@@ -1,3 +1,5 @@
+package coursera.strings.week2;
+
 import java.util.Scanner;
 
 public class InvertBWT {
