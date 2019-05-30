@@ -8,6 +8,149 @@ import java.util.Scanner;
 
 public class DistanceWithCoordinates {
 
+    private static class NodeComparator implements Comparator<Node> {
+        Long[] distances;
+        SearchDirection direction;
+
+        GraphWithReverse graph;
+        int sourceIndex;
+        int targetIndex;
+
+        NodeComparator(SearchDirection direction, GraphWithReverse graph, int sourceIndex, int targetIndex) {
+            this.direction = direction;
+            this.graph = graph;
+            this.sourceIndex = sourceIndex;
+            this.targetIndex = targetIndex;
+        }
+
+        @Override
+        public int compare(Node o1, Node o2) {
+            if (distances[o1.index] == null) {
+                if (distances[o2.index] == null) {
+                    return 0;
+                } else {
+                    return 1;
+                }
+            } else if (distances[o2.index] == null) {
+                return -1;
+            }
+
+            return Double.compare(distances[o1.index] + getRealPotential(o1),
+                distances[o2.index] + getRealPotential(o2));
+        }
+
+        private double getRealPotential(Node node) {
+            double realPotential = (node.getPotential(graph.nodes[targetIndex]) -
+                node.getPotential(graph.nodes[sourceIndex])) / 2;
+
+            if (SearchDirection.BACKWARD.equals(direction)) {
+                return -realPotential;
+            }
+
+            return realPotential;
+        }
+    }
+
+    static class Heap {
+
+        private Node[] array;
+        private int size;
+        NodeComparator comparator;
+
+        private Integer[] heapIndexes;
+        private Long[] priorities;
+
+        Heap(int maxSize, NodeComparator comparator) {
+            array = new Node[maxSize];
+            priorities = new Long[maxSize];
+            heapIndexes = new Integer[maxSize];
+            size = 0;
+
+            this.comparator = comparator;
+            comparator.distances = priorities;
+        }
+
+        void insert(Node node, Long priority) {
+            if (size == array.length) {
+                throw new RuntimeException("Heap is full");
+            }
+
+            size++;
+            array[size - 1] = node;
+            heapIndexes[node.index] = size - 1;
+            priorities[node.index] = priority;
+            siftUp(size - 1);
+        }
+
+        Node poll() {
+            Node result = array[0];
+            array[0] = array[size - 1];
+            size--;
+            siftDown(0);
+            return result;
+        }
+
+        void changePriority(Node node, Long priority) {
+            Long oldPriority = priorities[node.index];
+            priorities[node.index] = priority;
+            if (oldPriority != null && priority > oldPriority) {
+                siftDown(heapIndexes[node.index]);
+            } else {
+                siftUp(heapIndexes[node.index]);
+            }
+
+        }
+
+        boolean isNotEmpty() {
+            return size > 0;
+        }
+
+        private int parentIndex(int index) {
+            return (index - 1) / 2;
+        }
+
+        private int leftChildIndex(int index) {
+            return 2 * index + 1;
+        }
+
+        private int rightChildIndex(int index) {
+            return 2 * index + 2;
+        }
+
+        private void siftUp(int heapIndex) {
+            for (int parentIndex = parentIndex(heapIndex); heapIndex > 0
+                    && comparator.compare(array[parentIndex], array[heapIndex]) > 0;
+                    heapIndex = parentIndex, parentIndex = parentIndex(heapIndex)) {
+                swap(parentIndex, heapIndex);
+            }
+        }
+
+        private void siftDown(int index) {
+            int minIndex = index;
+
+            int leftChildIndex = leftChildIndex(index);
+            if (leftChildIndex < array.length && comparator.compare(array[leftChildIndex], array[minIndex]) < 0) {
+                minIndex = leftChildIndex;
+            }
+
+            int rightChildIndex = rightChildIndex(index);
+            if (rightChildIndex < array.length && comparator.compare(array[rightChildIndex], array[minIndex]) < 0) {
+                minIndex = rightChildIndex;
+            }
+
+            if (index != minIndex) {
+                swap(index, minIndex);
+                siftDown(minIndex);
+            }
+        }
+
+        private void swap(int index1, int index2) {
+            Node value1 = array[index1];
+            array[index1] = array[index2];
+            array[index2] = value1;
+        }
+    }
+
     private static class Edge {
         Node destination;
         int weight;
@@ -69,70 +212,22 @@ public class DistanceWithCoordinates {
             reverse.addEdge(toIndex, fromIndex, weight);
         }
 
-        private static class NodeComparator implements Comparator<Node> {
-            Long[] distances;
-            SearchDirection direction;
-
-            GraphWithReverse graph;
-            int sourceIndex;
-            int targetIndex;
-
-            NodeComparator(SearchDirection direction, GraphWithReverse graph, int sourceIndex, int targetIndex) {
-                this.direction = direction;
-                this.graph = graph;
-                this.sourceIndex = sourceIndex;
-                this.targetIndex = targetIndex;
-            }
-
-            @Override
-            public int compare(Node o1, Node o2) {
-                if (distances[o1.index] == null) {
-                    if (distances[o2.index] == null) {
-                        return 0;
-                    } else {
-                        return 1;
-                    }
-                } else if (distances[o2.index] == null) {
-                    return -1;
-                }
-
-                return Double.compare(distances[o1.index] + getRealPotential(o1),
-                    distances[o2.index] + getRealPotential(o2));
-            }
-
-            private double getRealPotential(Node node) {
-                double realPotential = (node.getPotential(graph.nodes[targetIndex]) -
-                        node.getPotential(graph.nodes[sourceIndex])) / 2;
-
-                if (SearchDirection.BACKWARD.equals(direction)) {
-                    return -realPotential;
-                }
-
-                return realPotential;
-            }
-        }
-
         long bidirectionalDijkstra(int fromIndex, int toIndex) {
             if (fromIndex == toIndex) {
                 return 0;
             }
 
-            PriorityQueue<Node> queue = new PriorityQueue<>(new NodeComparator(SearchDirection.FORWARD, this,
-                    fromIndex, toIndex));
-            PriorityQueue<Node> queueRev = new PriorityQueue<>(new NodeComparator(SearchDirection.BACKWARD, this,
-                    fromIndex, toIndex));
+            Heap queue = new Heap(qtyNodes, new NodeComparator(SearchDirection.FORWARD, this, fromIndex, toIndex));
+            Heap queueRev = new Heap(qtyNodes, new NodeComparator(SearchDirection.BACKWARD, this, fromIndex, toIndex));
 
             initializeQueues(queue, queueRev, fromIndex, toIndex);
 
             Map<Integer,Node> processed = new HashMap<>();
-            Node[] previous = new Node[nodes.length];
-
             Map<Integer,Node> processedRev = new HashMap<>();
-            Node[] previousRev = new Node[nodes.length];
 
-            while (!queue.isEmpty() && !queueRev.isEmpty()) {
+            while (queue.isNotEmpty() && queueRev.isNotEmpty()) {
                 Node node = queue.poll();
-                if (relaxEdges(node, queue, processed, previous)) {
+                if (relaxEdges(node, queue, processed)) {
                     if (processedRev.containsKey(node.index)) {
                         long minDistance = shortestPath(queue, queueRev, processed, processedRev, fromIndex, toIndex);
                         return minDistance == Long.MAX_VALUE ? -1 : minDistance;
@@ -142,7 +237,7 @@ public class DistanceWithCoordinates {
                 }
 
                 node = queueRev.poll();
-                if (relaxEdges(node, queueRev, processedRev, previousRev)) {
+                if (relaxEdges(node, queueRev, processedRev)) {
                     if (processed.containsKey(node.index)) {
                         long minDistance = shortestPath(queue, queueRev, processed, processedRev, fromIndex, toIndex);
                         return minDistance == Long.MAX_VALUE ? -1 : minDistance;
@@ -155,49 +250,41 @@ public class DistanceWithCoordinates {
             return -1;
         }
 
-        private boolean relaxEdges(Node node, PriorityQueue<Node> queue, Map<Integer,Node> processed,
-                Node[] previous) {
-            Long[] distances = ((NodeComparator)queue.comparator()).distances;
-            if (distances[node.index] == null) {
+        private boolean relaxEdges(Node node, Heap queue, Map<Integer,Node> processed) {
+            if (queue.priorities[node.index] == null) {
                 return false;
             }
 
             for (Edge edge : node.outgoing.values()) {
-                long possibility = distances[node.index] + edge.weight;
-                if (distances[edge.destination.index] == null || distances[edge.destination.index] > possibility) {
-                    previous[edge.destination.index] = node;
-                    queue.remove(edge.destination);
-                    distances[edge.destination.index] = possibility;
-                    queue.add(edge.destination);
+                long possibility = queue.priorities[node.index] + edge.weight;
+                if (queue.priorities[edge.destination.index] == null
+                        || queue.priorities[edge.destination.index] > possibility) {
+                    queue.changePriority(edge.destination, possibility);
                 }
             }
             processed.put(node.index, node);
             return true;
         }
 
-        private void initializeQueues(PriorityQueue<Node> queue, PriorityQueue<Node> queueRev, int fromIndex,
-            int toIndex) {
-            Long[] distances = new Long[qtyNodes];
-            Long[] distancesRev = new Long[qtyNodes];
-            distances[fromIndex] = 0L;
-            distancesRev[toIndex] = 0L;
-
-            NodeComparator comparator = ((NodeComparator) queue.comparator());
-            comparator.distances = distances;
-
-            NodeComparator comparatorRev = ((NodeComparator) queueRev.comparator());
-            comparatorRev.distances = distancesRev;
-
+        private void initializeQueues(Heap queue, Heap queueRev, int fromIndex, int toIndex) {
             for (int index = 0; index < nodes.length; index++) {
-                queue.add(nodes[index]);
-                queueRev.add(reverse.nodes[index]);
+                if (index == fromIndex) {
+                    queue.insert(nodes[index], 0L);
+                } else {
+                    queue.insert(nodes[index], null);
+                }
+                if (index == toIndex) {
+                    queueRev.insert(reverse.nodes[index], 0L);
+                } else {
+                    queueRev.insert(reverse.nodes[index], null);
+                }
             }
         }
 
-        private long shortestPath(PriorityQueue<Node> queue, PriorityQueue<Node> queueRev, Map<Integer,Node> processed,
+        private long shortestPath(Heap queue, Heap queueRev, Map<Integer,Node> processed,
                 Map<Integer,Node> processedRev, int fromIndex, int toIndex) {
-            Long[] distances = ((NodeComparator)queue.comparator()).distances;
-            Long[] distancesRev = ((NodeComparator)queueRev.comparator()).distances;
+            Long[] distances = queue.priorities;
+            Long[] distancesRev = queueRev.priorities;
             long minDistance = Math.min(distances[toIndex] == null ? Long.MAX_VALUE : distances[toIndex],
                     distancesRev[fromIndex] == null ? Long.MAX_VALUE : distancesRev[fromIndex]);
 
