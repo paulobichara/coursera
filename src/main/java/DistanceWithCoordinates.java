@@ -75,11 +75,12 @@ public class DistanceWithCoordinates {
                 throw new RuntimeException("Heap is full");
             }
 
-            size++;
-            array[size - 1] = node;
-            heapIndexes[node.index] = size - 1;
+            array[size] = node;
+            heapIndexes[node.index] = size;
             priorities[node.index] = priority;
-            siftUp(size - 1);
+            siftUp(size);
+
+            size++;
         }
 
         Node poll() {
@@ -148,6 +149,9 @@ public class DistanceWithCoordinates {
             Node value1 = array[index1];
             array[index1] = array[index2];
             array[index2] = value1;
+
+            heapIndexes[array[index1].index] = index1;
+            heapIndexes[array[index2].index] = index2;
         }
     }
 
