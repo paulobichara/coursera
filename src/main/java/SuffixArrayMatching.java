@@ -1,7 +1,9 @@
 import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 
-public class PatternMatchingSuffixArray {
+public class SuffixArrayMatching {
 
     private static class Alphabet {
         static final int SIZE = 5;
@@ -29,12 +31,12 @@ public class PatternMatchingSuffixArray {
             lcp = LCPArrayBuilder.computeLCPArray(this.text, suffixes);
         }
 
-        void matchesPattern(String pattern) {
+        void matchesPattern(String pattern, Map<Integer, Boolean> printedMap) {
             int minIndex = 0;
             int maxIndex = text.length();
             while (minIndex < maxIndex) {
                 int midIndex = (minIndex + maxIndex) / 2;
-                if (compare(pattern, suffixes[midIndex]) > 0) {
+                if (compare(pattern, suffixes[midIndex]).result > 0) {
                     minIndex = midIndex + 1;
                 } else {
                     maxIndex = midIndex;
@@ -45,43 +47,55 @@ public class PatternMatchingSuffixArray {
             maxIndex = text.length();
             while (minIndex < maxIndex) {
                 int midIndex = (minIndex + maxIndex) / 2;
-                if (compare(pattern, suffixes[midIndex]) < 0) {
+                if (compare(pattern, suffixes[midIndex]).result < 0) {
                     maxIndex = midIndex;
                 } else {
                     minIndex = midIndex + 1;
                 }
             }
             int end = maxIndex;
-            if (start <= end) {
+            if (start < end || (start == end && compare(pattern, suffixes[start]).suffixContains)) {
                 for (int index = start; (index == start ||
                         (index - 1 < lcp.length && lcp[index - 1] >= pattern.length())); index++) {
-                    System.out.print(suffixes[index] + " ");
+                    if (!printedMap.containsKey(suffixes[index])) {
+                        System.out.print(suffixes[index] + " ");
+                        printedMap.put(suffixes[index], true);
+                    }
                 }
             }
-            System.out.println();
         }
 
-        private int compare(String pattern, int suffixStart) {
+        private static class ComparisonResult {
+            int result;
+            boolean suffixContains;
+
+            ComparisonResult(int result, boolean suffixContains) {
+                this.result = result;
+                this.suffixContains = suffixContains;
+            }
+        }
+
+        private ComparisonResult compare(String pattern, int suffixStart) {
             for (int index = suffixStart; index < text.length(); index++) {
                 int patternIndex = index - suffixStart;
                 if (patternIndex == pattern.length()) {
-                    return -1;
+                    return new ComparisonResult(-1, true);
                 }
 
                 int charPattern = Alphabet.getCharKey(pattern.charAt(index - suffixStart));
                 int charSuffix = Alphabet.getCharKey(text.charAt(index));
                 if (charPattern > charSuffix) {
-                    return 1;
+                    return new ComparisonResult(1, false);
                 } else if (charPattern < charSuffix) {
-                    return -1;
+                    return new ComparisonResult(-1, false);
                 }
             }
 
             if (pattern.length() == text.length() - suffixStart) {
-                return 0;
+                return new ComparisonResult(0, true);
             }
 
-            return 1;
+            return new ComparisonResult(1, false);
         }
     }
 
@@ -214,9 +228,10 @@ public class PatternMatchingSuffixArray {
         try (Scanner scanner = new Scanner(System.in); PrintWriter writer = new PrintWriter(System.out)) {
             SuffixArrayWithLCP suffixArray = new SuffixArrayWithLCP(scanner.next());
             int patternsQty = scanner.nextInt();
+            Map<Integer, Boolean> processed = new HashMap<>();
             while (patternsQty > 0) {
                 patternsQty--;
-                suffixArray.matchesPattern(scanner.next());
+                suffixArray.matchesPattern(scanner.next(), processed);
             }
         }
     }
