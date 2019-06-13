@@ -54,7 +54,8 @@ public class SuffixArrayMatching {
                 }
             }
             int end = maxIndex;
-            if (start < end || (start == end && compare(pattern, suffixes[start]).suffixContains)) {
+            if (start < end || (start == end && start < suffixes.length
+                    && compare(pattern, suffixes[start]).suffixContains)) {
                 for (int index = start; (index == start ||
                         (index - 1 < lcp.length && lcp[index - 1] >= pattern.length())); index++) {
                     if (!printedMap.containsKey(suffixes[index])) {
