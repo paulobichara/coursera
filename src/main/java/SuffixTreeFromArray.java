@@ -124,13 +124,13 @@ public class SuffixTreeFromArray {
                 Character nextChar = getNextChar(node, charKey);
                 if (nextChar != null) {
                     nodeStack.push(node);
-                    nextCharKeys.push(charKey + 1);
+                    nextCharKeys.push(Alphabet.getKey(nextChar));
                 }
 
                 builder.append(node.children.get(character).edgeStart).append(" ")
                         .append(node.children.get(character).edgeEnd + 1).append('\n');
                 nodeStack.push(node.children.get(character));
-                nextCharKeys.push(0);
+                nextCharKeys.push(node.children.get(character).children.isEmpty() ? 0 : Alphabet.getKey(getNextChar(node.children.get(character), -1)));
             }
             System.out.println(builder.toString());
         }
