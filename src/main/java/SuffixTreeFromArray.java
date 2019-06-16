@@ -30,14 +30,6 @@ public class SuffixTreeFromArray {
                     default: return null;
                 }
             }
-
-            static Character getNextCharacter(Character character) {
-                if (character == null) {
-                    return getCharacter(0);
-                }
-
-                return getCharacter(getKey(character) + 1);
-            }
         }
 
         private static class Node {
@@ -73,10 +65,10 @@ public class SuffixTreeFromArray {
                  if (current.stringDepth == lcpPrev) {
                     current = createNewLeaf(current, text, suffixStart);
                  } else {
-                    int edgeStart = suffixes[index - 1] + current.stringDepth;
-                    int offset = lcpPrev - current.stringDepth;
-                    Node midNode = breakEdge(current, text, edgeStart, offset);
-                    current = createNewLeaf(midNode, text, suffixStart);
+                     int edgeStart = suffixes[index - 1] + current.stringDepth;
+                     int offset = lcpPrev - current.stringDepth;
+                     Node midNode = breakEdge(current, text, edgeStart, offset);
+                     current = createNewLeaf(midNode, text, suffixStart);
                  }
                  if (index < text.length() - 1) {
                      lcpPrev = lcpArray[index];
@@ -129,10 +121,13 @@ public class SuffixTreeFromArray {
 
                 builder.append(node.children.get(character).edgeStart).append(" ")
                         .append(node.children.get(character).edgeEnd + 1).append('\n');
-                nodeStack.push(node.children.get(character));
-                nextCharKeys.push(node.children.get(character).children.isEmpty() ? 0 : Alphabet.getKey(getNextChar(node.children.get(character), -1)));
+
+                if (!node.children.get(character).children.isEmpty()) {
+                    nodeStack.push(node.children.get(character));
+                    nextCharKeys.push(Alphabet.getKey(getNextChar(node.children.get(character), -1)));
+                }
             }
-            System.out.println(builder.toString());
+            System.out.print(builder.toString());
         }
 
         private Character getNextChar(Node node, int currentKey) {
