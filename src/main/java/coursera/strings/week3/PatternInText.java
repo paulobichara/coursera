@@ -1,3 +1,5 @@
+package coursera.strings.week3;
+
 import java.util.Scanner;
 
 public class PatternInText {

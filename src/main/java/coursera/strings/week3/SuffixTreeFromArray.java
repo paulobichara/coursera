@@ -1,3 +1,5 @@
+package coursera.strings.week3;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
